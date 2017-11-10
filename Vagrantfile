@@ -30,10 +30,12 @@ Vagrant.configure("2") do |config|
         genhostid
         zpool create test -o cachefile=none -o multihost=on /dev/sdb
         zpool export test
-        curl https://sh.rustup.rs -sSf > rustup.sh
-        chmod +x rustup.sh
+        curl https://sh.rustup.rs -sSf > /home/vagrant/rustup.sh
+        chmod 777 rustup.sh
+        su vagrant
         ./rustup.sh -y
         source $HOME/.cargo/env
+        exit
     SHELL
   end
   
