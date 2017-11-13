@@ -32,10 +32,10 @@ Vagrant.configure("2") do |config|
         zpool export test
         curl https://sh.rustup.rs -sSf > /home/vagrant/rustup.sh
         chmod 777 rustup.sh
-        su vagrant
+        su vagrant <<EOF
         ./rustup.sh -y
         source $HOME/.cargo/env
-        exit
+        EOF
     SHELL
   end
   
