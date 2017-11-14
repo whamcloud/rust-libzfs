@@ -1,3 +1,6 @@
 vagrant up
-vagrant ssh -c 'cd /vagrant; cargo test'
+vagrant ssh -c 'sudo -i -- <<EOF
+cd /vagrant 
+cargo test
+EOF'
 vagrant destroy -f
