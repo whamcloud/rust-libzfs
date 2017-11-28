@@ -1,2 +1,2 @@
 # rust-libzfs
-Bindings to libzfs from rust
+Bindings to libzfs from rust.

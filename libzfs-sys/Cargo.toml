@@ -1,0 +1,13 @@
+[package]
+name = "libzfs-sys"
+version = "0.1.0"
+authors = ["Joe Grund <joe.grund@intel.com>"]
+links = "zfs"
+build = "build.rs"
+
+[dependencies]
+nvpair-sys = "0.1.0"
+
+[build-dependencies]
+bindgen = "0.30.0"
+pkg-config = "0.3"
