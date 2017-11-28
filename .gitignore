@@ -9,3 +9,5 @@ target
 .vagrant
 *.vdi
 /tmp
+/*.xml
+.idea/

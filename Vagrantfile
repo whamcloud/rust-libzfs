@@ -29,6 +29,7 @@ Vagrant.configure("2") do |config|
         modprobe zfs
         genhostid
         zpool create test -o cachefile=none -o multihost=on /dev/sdb
+        zfs create test/ds
         zpool export test
         curl https://sh.rustup.rs -sSf > /home/vagrant/rustup.sh
         chmod 755 rustup.sh

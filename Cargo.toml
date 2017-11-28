@@ -1,2 +1,2 @@
 [workspace]
-members = ['libzfs-sys']
+members = ['libzfs-sys', 'libzfs']
