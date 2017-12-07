@@ -10,6 +10,12 @@ extern crate nvpair_sys;
 use nvpair_sys::*;
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
+pub fn zfs_type_dataset() -> ::std::os::raw::c_int {
+    let zfs_type_t(v) = zfs_type_t_ZFS_TYPE_FILESYSTEM | zfs_type_t_ZFS_TYPE_VOLUME | zfs_type_t_ZFS_TYPE_SNAPSHOT;
+
+    v as ::std::os::raw::c_int
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -79,6 +85,8 @@ mod tests {
 
             let state = &mut *(state as *mut Vec<String>);
             state.push(s);
+
+            zpool_close(handle);
 
             0
         }
