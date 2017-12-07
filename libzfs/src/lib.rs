@@ -13,16 +13,20 @@ use std::io::{Error, ErrorKind};
 
 #[derive(Debug, PartialEq)]
 pub enum VDev {
-    Mirror { children: Vec<VDev> },
+    Mirror {
+        children: Vec<VDev>,
+        is_log: Option<bool>,
+    },
     RaidZ { children: Vec<VDev> },
     Replacing { children: Vec<VDev> },
     Spare { children: Vec<VDev> },
     Root { children: Vec<VDev> },
     Disk {
         path: CString,
-        devid: CString,
-        phys_path: CString,
-        whole_disk: bool,
+        devid: Option<CString>,
+        phys_path: Option<CString>,
+        whole_disk: Option<bool>,
+        is_log: Option<bool>,
     },
     File { path: CString },
 }
@@ -114,7 +118,7 @@ impl Zpool {
 
         tree.and_then(|ref x| enumerate_vdev_tree(x))
     }
-    pub fn datasets(&self) {
+    pub fn datasets(&self) -> io::Result<Vec<Dataset>> {
         let x = unsafe {
             let name = self.name().into_raw();
             let h = sys::zpool_get_handle(self.raw);
@@ -127,16 +131,21 @@ impl Zpool {
         let ds = Dataset { raw: x };
 
         unsafe extern "C" fn callback(handle: *mut sys::zfs_handle_t, state: *mut c_void) -> c_int {
-            let ds2 = Dataset { raw: handle };
+            let state = &mut *(state as *mut Vec<Dataset>);
 
-            println!("ds name {:?}", ds2.name());
+            state.push(Dataset { raw: handle });
 
             0
         }
 
-        let mut state: Vec<String> = Vec::new();
+        let mut state: Vec<Dataset> = Vec::new();
         let state_ptr: *mut c_void = &mut state as *mut _ as *mut c_void;
         let code = unsafe { sys::zfs_iter_filesystems(ds.raw, Some(callback), state_ptr) };
+
+        match code {
+            0 => Ok(state),
+            x => Err(io::Error::from_raw_os_error(x)),
+        }
     }
 }
 
@@ -157,15 +166,23 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> io::Result<VDev> {
     match x {
         ref x if x == sys::VDEV_TYPE_DISK => {
             let path = tree.lookup_string(utf8_to_str(sys::ZPOOL_CONFIG_PATH))?;
-            let devid = tree.lookup_string(utf8_to_str(sys::ZPOOL_CONFIG_DEVID))?;
-            let phys_path = tree.lookup_string(utf8_to_str(sys::ZPOOL_CONFIG_PHYS_PATH))?;
-            let whole_disk = tree.lookup_uint64(utf8_to_str(sys::ZPOOL_CONFIG_WHOLE_DISK))? == 1;
+            let devid = tree.lookup_string(utf8_to_str(sys::ZPOOL_CONFIG_DEVID))
+                .ok();
+            let phys_path = tree.lookup_string(utf8_to_str(sys::ZPOOL_CONFIG_PHYS_PATH))
+                .ok();
+            let is_log = tree.lookup_uint64(utf8_to_str(sys::ZPOOL_CONFIG_IS_LOG))
+                .map(|x| x == 1)
+                .ok();
+            let whole_disk = tree.lookup_uint64(utf8_to_str(sys::ZPOOL_CONFIG_WHOLE_DISK))
+                .ok()
+                .map(|x| x == 1);
 
             Ok(VDev::Disk {
                 path,
                 devid,
                 phys_path,
                 whole_disk,
+                is_log,
             })
         }
         ref x if x == sys::VDEV_TYPE_FILE => {
@@ -175,8 +192,11 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> io::Result<VDev> {
         }
         ref x if x == sys::VDEV_TYPE_MIRROR => {
             let children = get_children(tree)?;
+            let is_log = tree.lookup_uint64(utf8_to_str(sys::ZPOOL_CONFIG_IS_LOG))
+                .map(|x| x == 1)
+                .ok();
 
-            Ok(VDev::Mirror { children })
+            Ok(VDev::Mirror { children, is_log })
         }
         ref x if x == sys::VDEV_TYPE_RAIDZ => {
             let children = get_children(tree)?;
@@ -214,9 +234,7 @@ pub struct Zfs {
 
 impl Zfs {
     pub fn new() -> Zfs {
-        Zfs {
-            raw: unsafe { sys::libzfs_init() },
-        }
+        Zfs { raw: unsafe { sys::libzfs_init() } }
     }
     pub fn find_importable_pools(&mut self) -> nvpair::NvList {
         unsafe {
@@ -228,17 +246,20 @@ impl Zfs {
         }
     }
     pub fn import_all(&mut self, nvl: &nvpair::NvList) -> io::Result<Vec<()>> {
-        nvl.iter().map(|x| {
-            let nvl2 = x.value_nv_list()?;
+        nvl.iter()
+            .map(|x| {
+                let nvl2 = x.value_nv_list()?;
 
-            let code =
-                unsafe { sys::zpool_import(self.raw, nvl2.as_ptr(), ptr::null(), ptr::null_mut()) };
+                let code = unsafe {
+                    sys::zpool_import(self.raw, nvl2.as_ptr(), ptr::null(), ptr::null_mut())
+                };
 
-            match code {
-                0 => Ok(()),
-                x => Err(io::Error::from_raw_os_error(x)),
-            }
-        }).collect()
+                match code {
+                    0 => Ok(()),
+                    x => Err(io::Error::from_raw_os_error(x)),
+                }
+            })
+            .collect()
     }
     pub fn export_all(&mut self, pools: &Vec<Zpool>) -> io::Result<Vec<()>> {
         pools
@@ -297,11 +318,18 @@ mod tests {
 
         let pools_to_import = z.find_importable_pools();
 
-        z.import_all(&pools_to_import).unwrap();
+        z.import_all(&pools_to_import).expect(
+            "could not import pools",
+        );
 
-        let imported_pools = z.get_imported_pools().unwrap();
-        
-        let test_pool = imported_pools.iter().find(|x| x.name() == CString::new("test").unwrap()).unwrap();
+        let imported_pools = z.get_imported_pools().expect(
+            "could not get imported pools",
+        );
+
+        let test_pool = imported_pools
+            .iter()
+            .find(|x| x.name() == CString::new("test").unwrap())
+            .expect("did not find test pool");
 
         assert_eq!(test_pool.state_name(), CString::new("ACTIVE").unwrap());
 
@@ -309,18 +337,18 @@ mod tests {
 
         assert_eq!(test_pool.read_only(), false);
 
-        let disks = match test_pool.vdev_tree().unwrap() {
+        let disks = match test_pool.vdev_tree().expect("could not fetch vdev tree") {
             VDev::Root { children } => children,
-            _ => panic!("did not find root device")
+            _ => panic!("did not find root device"),
         };
 
         let whole_disk = match disks[0] {
             VDev::Disk { whole_disk, .. } => whole_disk,
-            _ => panic!("did not find disk")
+            _ => panic!("did not find disk"),
         };
 
-        assert_eq!(whole_disk, true);
+        assert_eq!(whole_disk, Some(true));
 
-        z.export_all(&imported_pools).unwrap();
+        z.export_all(&imported_pools).expect("could not export pools");
     }
 }
