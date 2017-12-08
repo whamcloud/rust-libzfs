@@ -66,6 +66,7 @@ fn main() {
         .whitelisted_function("zfs_close")
         .whitelisted_function("zfs_iter_filesystems")
         .whitelisted_function("zfs_get_name")
+        .whitelisted_function("zfs_get_user_props")
         .whitelisted_function("libzfs_error_description")
         .clang_arg("-I/usr/lib/gcc/x86_64-redhat-linux/4.8.2/include/")
         .clang_arg("-I/usr/src/zfs-0.7.1/lib/libspl/include/")

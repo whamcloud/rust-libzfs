@@ -50,6 +50,12 @@ impl Dataset {
         let s = unsafe { CStr::from_ptr(sys::zfs_get_name(self.raw)) };
         s.to_owned()
     }
+    pub fn user_props(&self) -> nvpair::NvList {
+        unsafe {
+            let x = sys::zfs_get_user_props(self.raw);
+            nvpair::NvList::from_ptr(x, false)
+        }
+    }
 }
 
 impl Drop for Dataset {
@@ -349,6 +355,8 @@ mod tests {
 
         assert_eq!(whole_disk, Some(true));
 
-        z.export_all(&imported_pools).expect("could not export pools");
+        z.export_all(&imported_pools).expect(
+            "could not export pools",
+        );
     }
 }
