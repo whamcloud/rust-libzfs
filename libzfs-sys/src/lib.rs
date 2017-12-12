@@ -10,11 +10,50 @@ extern crate nvpair_sys;
 use nvpair_sys::*;
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
+fn utf8_to_string(bytes: &[u8]) -> String {
+    String::from_utf8(bytes.to_vec()).unwrap()
+}
+
+pub fn zpool_config_vdev_tree() -> String {
+    utf8_to_string(ZPOOL_CONFIG_VDEV_TREE)
+}
+
+pub fn zpool_config_type() -> String {
+    utf8_to_string(ZPOOL_CONFIG_TYPE)
+}
+
+pub fn zpool_config_children() -> String {
+    utf8_to_string(ZPOOL_CONFIG_CHILDREN)
+}
+
+pub fn zpool_config_path() -> String {
+    utf8_to_string(ZPOOL_CONFIG_PATH)
+}
+
+pub fn zpool_config_dev_id() -> String {
+    utf8_to_string(ZPOOL_CONFIG_DEVID)
+}
+
+pub fn zpool_config_phys_path() -> String {
+    utf8_to_string(ZPOOL_CONFIG_PHYS_PATH)
+}
+
+pub fn zpool_config_is_log() -> String {
+    utf8_to_string(ZPOOL_CONFIG_IS_LOG)
+}
+
+pub fn zpool_config_whole_disk() -> String {
+    utf8_to_string(ZPOOL_CONFIG_WHOLE_DISK)
+}
+
 pub fn zfs_type_dataset() -> ::std::os::raw::c_int {
-    let zfs_type_t(v) = zfs_type_t_ZFS_TYPE_FILESYSTEM | zfs_type_t_ZFS_TYPE_VOLUME | zfs_type_t_ZFS_TYPE_SNAPSHOT;
+    let zfs_type_t(v) = zfs_type_t_ZFS_TYPE_FILESYSTEM | zfs_type_t_ZFS_TYPE_VOLUME |
+        zfs_type_t_ZFS_TYPE_SNAPSHOT;
 
     v as ::std::os::raw::c_int
 }
+
+
 
 #[cfg(test)]
 mod tests {

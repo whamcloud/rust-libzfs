@@ -7,3 +7,5 @@ authors = ["Joe Grund <joe.grund@intel.com>"]
 libzfs-sys = { path = "../libzfs-sys", version = "0.1.0" }
 nvpair = { git = "https://github.com/jgrund/rust-libzfs.git", rev = "get-values" }
 nvpair-sys = { git = "https://github.com/jgrund/rust-libzfs.git", rev = "get-values" }
+serde = "1.0"
+serde_derive = "1.0"

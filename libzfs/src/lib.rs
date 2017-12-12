@@ -4,14 +4,60 @@
 
 extern crate libzfs_sys as sys;
 extern crate nvpair;
-use std::ptr;
 use std::os::raw::{c_int, c_void};
-use std::ffi::{CStr, CString};
-use std::str;
-use std::io;
+use std::ffi::{CStr, CString, IntoStringError};
+use std::{error, fmt, ptr, result, str};
 use std::io::{Error, ErrorKind};
 
-#[derive(Debug, PartialEq)]
+#[macro_use]
+extern crate serde_derive;
+
+#[derive(Debug)]
+pub enum LibZfsError {
+    Io(::std::io::Error),
+    IntoString(IntoStringError),
+}
+
+impl fmt::Display for LibZfsError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            LibZfsError::Io(ref err) => write!(f, "{}", err),
+            LibZfsError::IntoString(ref err) => write!(f, "{}", err),
+        }
+    }
+}
+
+impl error::Error for LibZfsError {
+    fn description(&self) -> &str {
+        match *self {
+            LibZfsError::Io(ref err) => err.description(),
+            LibZfsError::IntoString(ref err) => err.description(),
+        }
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        match *self {
+            LibZfsError::Io(ref err) => Some(err),
+            LibZfsError::IntoString(ref err) => Some(err),
+        }
+    }
+}
+
+impl From<Error> for LibZfsError {
+    fn from(err: Error) -> Self {
+        LibZfsError::Io(err)
+    }
+}
+
+impl From<IntoStringError> for LibZfsError {
+    fn from(err: IntoStringError) -> Self {
+        LibZfsError::IntoString(err)
+    }
+}
+
+pub type Result<T> = result::Result<T, LibZfsError>;
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub enum VDev {
     Mirror {
         children: Vec<VDev>,
@@ -22,22 +68,13 @@ pub enum VDev {
     Spare { children: Vec<VDev> },
     Root { children: Vec<VDev> },
     Disk {
-        path: CString,
-        devid: Option<CString>,
-        phys_path: Option<CString>,
+        path: String,
+        dev_id: Option<String>,
+        phys_path: Option<String>,
         whole_disk: Option<bool>,
         is_log: Option<bool>,
     },
-    File { path: CString },
-}
-
-#[derive(Debug, PartialEq)]
-pub struct Pool {
-    pub name: CString,
-    pub state: sys::pool_state_t,
-    pub pool_guid: String,
-    pub vdev_tree: VDev,
-    pub read_only: bool,
+    File { path: String },
 }
 
 #[derive(Debug, PartialEq)]
@@ -62,10 +99,6 @@ impl Drop for Dataset {
     fn drop(&mut self) {
         unsafe { sys::zfs_close(self.raw) }
     }
-}
-
-fn utf8_to_str(bytes: &[u8]) -> &str {
-    str::from_utf8(bytes).unwrap()
 }
 
 #[derive(Debug, PartialEq)]
@@ -115,16 +148,14 @@ impl Zpool {
             nvpair::NvList::from_ptr(x, false)
         }
     }
-    pub fn vdev_tree(&self) -> io::Result<VDev> {
+    pub fn vdev_tree(&self) -> Result<VDev> {
         let config = self.get_config();
 
-        let zpool_config_vdev_tree = utf8_to_str(sys::ZPOOL_CONFIG_VDEV_TREE);
+        let tree = config.lookup_nv_list(sys::zpool_config_vdev_tree())?;
 
-        let tree = config.lookup_nv_list(zpool_config_vdev_tree);
-
-        tree.and_then(|ref x| enumerate_vdev_tree(x))
+        enumerate_vdev_tree(&tree)
     }
-    pub fn datasets(&self) -> io::Result<Vec<Dataset>> {
+    pub fn datasets(&self) -> Result<Vec<Dataset>> {
         let x = unsafe {
             let name = self.name().into_raw();
             let h = sys::zpool_get_handle(self.raw);
@@ -150,55 +181,66 @@ impl Zpool {
 
         match code {
             0 => Ok(state),
-            x => Err(io::Error::from_raw_os_error(x)),
+            x => Err(LibZfsError::Io(Error::from_raw_os_error(x))),
         }
     }
 }
 
-pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> io::Result<VDev> {
-    let zpool_config_type = utf8_to_str(sys::ZPOOL_CONFIG_TYPE);
-    let tmp = tree.lookup_string(zpool_config_type)?;
+impl Drop for Zpool {
+    fn drop(&mut self) {
+        unsafe { sys::zpool_close(self.raw) }
+    }
+}
+
+pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
+    let tmp = tree.lookup_string(sys::zpool_config_type())?;
     let x = tmp.as_bytes_with_nul();
 
-    fn get_children(tree: &nvpair::NvList) -> io::Result<Vec<VDev>> {
-        let zpool_config_children = utf8_to_str(sys::ZPOOL_CONFIG_CHILDREN);
-
-        tree.lookup_nv_list_array(zpool_config_children)?
+    fn get_children(tree: &nvpair::NvList) -> Result<Vec<VDev>> {
+        tree.lookup_nv_list_array(sys::zpool_config_children())?
             .iter()
             .map(|x| enumerate_vdev_tree(x))
             .collect()
     }
 
+    fn lookup_tree_str(tree: &nvpair::NvList, name: String) -> Result<Option<String>> {
+        let x = tree.lookup_string(name);
+
+        match x {
+            Ok(x) => Ok(Some(x.into_string()?)),
+            Err(_) => Ok(None),
+        }
+    }
+
     match x {
         ref x if x == sys::VDEV_TYPE_DISK => {
-            let path = tree.lookup_string(utf8_to_str(sys::ZPOOL_CONFIG_PATH))?;
-            let devid = tree.lookup_string(utf8_to_str(sys::ZPOOL_CONFIG_DEVID))
-                .ok();
-            let phys_path = tree.lookup_string(utf8_to_str(sys::ZPOOL_CONFIG_PHYS_PATH))
-                .ok();
-            let is_log = tree.lookup_uint64(utf8_to_str(sys::ZPOOL_CONFIG_IS_LOG))
+            let path = tree.lookup_string(sys::zpool_config_path())?
+                .into_string()?;
+            let dev_id = lookup_tree_str(tree, sys::zpool_config_dev_id())?;
+            let phys_path = lookup_tree_str(tree, sys::zpool_config_phys_path())?;
+            let is_log = tree.lookup_uint64(sys::zpool_config_is_log())
                 .map(|x| x == 1)
                 .ok();
-            let whole_disk = tree.lookup_uint64(utf8_to_str(sys::ZPOOL_CONFIG_WHOLE_DISK))
+            let whole_disk = tree.lookup_uint64(sys::zpool_config_whole_disk())
                 .ok()
                 .map(|x| x == 1);
 
             Ok(VDev::Disk {
                 path,
-                devid,
+                dev_id,
                 phys_path,
                 whole_disk,
                 is_log,
             })
         }
         ref x if x == sys::VDEV_TYPE_FILE => {
-            let path = tree.lookup_string("path")?;
+            let path = tree.lookup_string(sys::zpool_config_path())?.into_string()?;
 
             Ok(VDev::File { path })
         }
         ref x if x == sys::VDEV_TYPE_MIRROR => {
             let children = get_children(tree)?;
-            let is_log = tree.lookup_uint64(utf8_to_str(sys::ZPOOL_CONFIG_IS_LOG))
+            let is_log = tree.lookup_uint64(sys::zpool_config_is_log())
                 .map(|x| x == 1)
                 .ok();
 
@@ -224,23 +266,32 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> io::Result<VDev> {
 
             Ok(VDev::Root { children })
         }
-        _ => Err(Error::new(ErrorKind::NotFound, "hit unknown vdev type")),
+        _ => Err(LibZfsError::Io(
+            Error::new(ErrorKind::NotFound, "hit unknown vdev type"),
+        )),
     }
 }
 
-impl Drop for Zpool {
-    fn drop(&mut self) {
-        unsafe { sys::zpool_close(self.raw) }
-    }
-}
-
-pub struct Zfs {
+pub struct Libzfs {
     raw: *mut sys::libzfs_handle_t,
 }
 
-impl Zfs {
-    pub fn new() -> Zfs {
-        Zfs { raw: unsafe { sys::libzfs_init() } }
+impl Libzfs {
+    pub fn new() -> Libzfs {
+        Libzfs { raw: unsafe { sys::libzfs_init() } }
+    }
+    pub fn pool_by_name(&mut self, name: &str) -> Option<Zpool> {
+        unsafe {
+            let pool_name = CString::new(name).unwrap();
+
+            let pool = sys::zpool_open_canfail(self.raw, pool_name.as_ptr());
+
+            if pool.is_null() {
+                None
+            } else {
+                Some(Zpool { raw: pool })
+            }
+        }
     }
     pub fn find_importable_pools(&mut self) -> nvpair::NvList {
         unsafe {
@@ -251,7 +302,7 @@ impl Zfs {
             nvpair::NvList::from_ptr(x, true)
         }
     }
-    pub fn import_all(&mut self, nvl: &nvpair::NvList) -> io::Result<Vec<()>> {
+    pub fn import_all(&mut self, nvl: &nvpair::NvList) -> Result<Vec<()>> {
         nvl.iter()
             .map(|x| {
                 let nvl2 = x.value_nv_list()?;
@@ -262,12 +313,12 @@ impl Zfs {
 
                 match code {
                     0 => Ok(()),
-                    x => Err(io::Error::from_raw_os_error(x)),
+                    x => Err(LibZfsError::Io(Error::from_raw_os_error(x))),
                 }
             })
             .collect()
     }
-    pub fn export_all(&mut self, pools: &Vec<Zpool>) -> io::Result<Vec<()>> {
+    pub fn export_all(&mut self, pools: &Vec<Zpool>) -> Result<Vec<()>> {
         pools
             .iter()
             .map(|x| {
@@ -276,12 +327,12 @@ impl Zfs {
 
                 match code {
                     0 => Ok(()),
-                    x => Err(io::Error::from_raw_os_error(x)),
+                    x => Err(LibZfsError::Io(Error::from_raw_os_error(x))),
                 }
             })
             .collect()
     }
-    pub fn get_imported_pools(&mut self) -> io::Result<Vec<Zpool>> {
+    pub fn get_imported_pools(&mut self) -> Result<Vec<Zpool>> {
         unsafe extern "C" fn callback(
             handle: *mut sys::zpool_handle_t,
             state: *mut c_void,
@@ -298,12 +349,12 @@ impl Zfs {
 
         match code {
             0 => Ok(state),
-            x => Err(io::Error::from_raw_os_error(x)),
+            x => Err(LibZfsError::Io(Error::from_raw_os_error(x))),
         }
     }
 }
 
-impl Drop for Zfs {
+impl Drop for Libzfs {
     fn drop(&mut self) {
         unsafe { sys::libzfs_fini(self.raw) }
     }
@@ -315,12 +366,12 @@ mod tests {
 
     #[test]
     fn open_close_handle() {
-        Zfs::new();
+        Libzfs::new();
     }
 
     #[test]
     fn import_check_methods_export() {
-        let mut z = Zfs::new();
+        let mut z = Libzfs::new();
 
         let pools_to_import = z.find_importable_pools();
 
