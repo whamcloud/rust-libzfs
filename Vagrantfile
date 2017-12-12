@@ -23,7 +23,7 @@ Vagrant.configure("2") do |config|
   
     config.vm.provision "shell", inline: <<-SHELL
         yum -y install yum-plugin-copr epel-release
-        yum-config-manager --add-repo https://downloads.hpdd.intel.com/public/lustre/lustre-2.10.1/el7/server
+        yum-config-manager --add-repo https://downloads.hpdd.intel.com/public/lustre/lustre-2.10.2/el7/server/
         yum -y copr enable alonid/llvm-5.0.0
         yum -y install clang-5.0.0 zfs libzfs2-devel --nogpgcheck
         modprobe zfs
