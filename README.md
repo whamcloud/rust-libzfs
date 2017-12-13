@@ -1,2 +1,4 @@
 # rust-libzfs
-Bindings to libzfs from rust.
+
+This lib repo provides [bindings](libzfs-sys) from libzfs to rust using bindgen.
+It also provides a [wrapper](libzfs) around those bindings for idiomatic use.
