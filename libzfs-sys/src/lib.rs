@@ -46,11 +46,13 @@ pub fn zpool_config_whole_disk() -> String {
     utf8_to_string(ZPOOL_CONFIG_WHOLE_DISK)
 }
 
-pub fn zfs_type_dataset() -> ::std::os::raw::c_int {
-    let zfs_type_t(v) = zfs_type_t_ZFS_TYPE_FILESYSTEM | zfs_type_t_ZFS_TYPE_VOLUME |
-        zfs_type_t_ZFS_TYPE_SNAPSHOT;
+pub fn zfs_value() -> String {
+    utf8_to_string(ZPROP_VALUE)
+}
 
-    v as ::std::os::raw::c_int
+pub fn zfs_type_dataset() -> zfs_type_t {
+    zfs_type_t_ZFS_TYPE_FILESYSTEM | zfs_type_t_ZFS_TYPE_VOLUME |
+        zfs_type_t_ZFS_TYPE_SNAPSHOT
 }
 
 
