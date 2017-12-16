@@ -10,7 +10,7 @@ use std::ffi::CString;
 use neon::vm::{Call, JsResult, Throw};
 use neon::js::{JsNull, JsString, JsValue};
 use neon::js::error::{JsError, Kind};
-use libzfs::{Dataset, Libzfs, VDev, Zpool};
+use libzfs::{Zfs, Libzfs, VDev, Zpool};
 
 #[derive(Serialize, Debug, Deserialize)]
 struct Pool {
@@ -28,7 +28,7 @@ struct JsDataset {
     kind: String,
 }
 
-fn convert_to_js_dataset(x: &Dataset) -> Result<JsDataset, Throw> {
+fn convert_to_js_dataset(x: &Zfs) -> Result<JsDataset, Throw> {
     Ok(JsDataset {
         name: c_string_to_string(x.name())?,
         kind: c_string_to_string(x.zfs_type_name())?,
@@ -77,9 +77,9 @@ fn get_dataset_string_prop(call: Call) -> JsResult<JsValue> {
         .check::<JsString>()?
         .value();
 
-    let x: Option<String> = libzfs
-        .dataset_by_name(&ds_name)
-        .and_then(|x| x.lookup_string_prop(&prop_name));
+    let x: Option<String> = libzfs.dataset_by_name(&ds_name).and_then(|x| {
+        x.lookup_string_prop(&prop_name)
+    });
 
     match x {
         Some(y) => Ok(JsString::new(scope, &y).unwrap().upcast()),
