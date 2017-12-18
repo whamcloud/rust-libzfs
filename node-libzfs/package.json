@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/intel-hpdd/node-libzfs"
   },
-  "author": "IML Team <joe.grund@intel.com>",
+  "author": "IML Team",
   "license": "MIT",
   "dependencies": {
     "neon-cli": "^0.1.22"
