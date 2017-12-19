@@ -1,5 +1,5 @@
 {
-  "name": "node-libzfs",
+  "name": "@iml/node-libzfs",
   "version": "0.1.0",
   "description": "Neon bindings to libzfs",
   "main": "lib/index.js",
