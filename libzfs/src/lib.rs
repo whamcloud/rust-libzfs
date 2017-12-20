@@ -8,6 +8,7 @@ use std::os::raw::{c_int, c_void};
 use std::ffi::{CStr, CString, IntoStringError};
 use std::{error, fmt, ptr, result, str};
 use std::io::{Error, ErrorKind};
+use nvpair::ForeignType;
 
 #[macro_use]
 extern crate serde_derive;
@@ -89,16 +90,16 @@ impl Zfs {
         let s = unsafe { CStr::from_ptr(sys::zfs_get_name(self.raw)) };
         s.to_owned()
     }
-    pub fn user_props(&self) -> nvpair::NvList {
+    pub fn user_props(&self) -> &mut nvpair::NvListRef {
         unsafe {
             let x = sys::zfs_get_user_props(self.raw);
-            nvpair::NvList::from_ptr(x, false)
+            nvpair::NvListRef::from_mut_ptr(x)
         }
     }
-    pub fn props(&self) -> nvpair::NvList {
+    pub fn props(&self) -> &mut nvpair::NvListRef {
         unsafe {
             let x = (*self.raw).zfs_props;
-            nvpair::NvList::from_ptr(x, false)
+            nvpair::NvListRef::from_mut_ptr(x)
         }
     }
     pub fn zfs_type(&self) -> sys::zfs_type_t {
@@ -170,11 +171,11 @@ impl Zpool {
     pub fn read_only(&self) -> bool {
         self.prop_int(sys::zpool_prop_t::ZPOOL_PROP_READONLY) != 0
     }
-    pub fn get_config(&self) -> nvpair::NvList {
+    pub fn get_config(&self) -> &mut nvpair::NvListRef {
         unsafe {
             let x = sys::zpool_get_config(self.raw, ptr::null_mut());
             assert!(!x.is_null(), "config pointer is null");
-            nvpair::NvList::from_ptr(x, false)
+            nvpair::NvListRef::from_mut_ptr(x)
         }
     }
     pub fn vdev_tree(&self) -> Result<VDev> {
@@ -344,7 +345,7 @@ impl Libzfs {
             let x = sys::zpool_find_import(self.raw, 0, ptr::null_mut());
             sys::thread_fini();
 
-            nvpair::NvList::from_ptr(x, true)
+            nvpair::NvList::from_ptr(x)
         }
     }
     pub fn import_all(&mut self, nvl: &nvpair::NvList) -> Result<Vec<()>> {
@@ -353,7 +354,12 @@ impl Libzfs {
                 let nvl2 = x.value_nv_list()?;
 
                 let code = unsafe {
-                    sys::zpool_import(self.raw, nvl2.as_ptr(), ptr::null(), ptr::null_mut())
+                    sys::zpool_import(
+                        self.raw,
+                        nvl2.as_ptr() as *mut _,
+                        ptr::null(),
+                        ptr::null_mut(),
+                    )
                 };
 
                 match code {
