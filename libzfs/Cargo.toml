@@ -1,7 +1,7 @@
 [package]
 name = "libzfs"
 version = "0.1.0"
-authors = ["Joe Grund <joe.grund@intel.com>"]
+authors = ["IML Team <iml@intel.com>"]
 
 [dependencies]
 libzfs-sys = { path = "../libzfs-sys", version = "0.1.0" }

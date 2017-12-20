@@ -1,0 +1,36 @@
+sudo: required
+services:
+  - docker
+
+jobs:
+  include:
+    - stage: test
+      env: Type='bindgen test'
+      script:
+        - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw intelhpdd/libzfs:version1.0
+        - docker exec -i libzfs bash -c 'source $HOME/.cargo/env && cd /rust-libzfs/node-libzfs && cargo build'
+        - docker exec -i libzfs bash -c 'source $HOME/.cargo/env && cd /rust-libzfs/libzfs-sys && cargo test bindgen_test_layout'
+    - stage: test
+      env: Type='virus scan'
+      script:
+        - sudo apt-get install clamav -y
+        - sudo freshclam
+        - clamscan --quiet -r ./
+    - stage: test
+      env: Type='ts2fable'
+      language: csharp
+      dotnet: 2.1.2
+      mono: latest
+      script:
+        - nvm install 8
+        - npm i -g ts2fable
+        - ts2fable $(pwd)/node-libzfs/lib/libzfs.d.ts $(pwd)/node-libzfs/lib/out.fs
+    - stage: deploy
+      env: Type='libzfs-sys'
+      language: rust
+      rust: stable
+      if: branch = master AND tag =~ ^v.+libzfs-sys$
+      script:
+        - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw intelhpdd/libzfs:version1.0
+        - docker exec -i libzfs bash -c "source /root/.cargo/env && cd /rust-libzfs/libzfs-sys && cargo package"
+        - cd $(pwd)/libzfs-sys && cargo publish --token $CARGO_TOKEN
