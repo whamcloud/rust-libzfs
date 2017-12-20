@@ -100,12 +100,19 @@ fn get_pool_by_name(call: Call) -> JsResult<JsValue> {
         .check::<JsString>()?
         .value();
 
-    let p = libzfs.pool_by_name(&pool_name).unwrap();
+    let p = libzfs.pool_by_name(&pool_name);
 
-    let value = convert_to_js_pool(&p)?;
+    match p {
+        Some(x) => {
+            let value = convert_to_js_pool(&x)?;
 
-    let js_value = neon_serde::to_value(&value, scope)?;
-    Ok(js_value)
+            let js_value = neon_serde::to_value(&value, scope)?;
+
+            Ok(js_value)
+        }
+        None => Ok(JsNull::new().upcast()),
+    }
+
 }
 
 fn get_imported_pools(call: Call) -> JsResult<JsValue> {

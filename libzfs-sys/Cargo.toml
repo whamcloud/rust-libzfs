@@ -9,7 +9,7 @@ links = "zfs"
 build = "build.rs"
 
 [dependencies]
-nvpair-sys = { git = "https://github.com/jgrund/rust-libzfs.git", rev = "get-values" }
+nvpair-sys = "0.1"
 
 [build-dependencies]
 bindgen = "0.30.0"
