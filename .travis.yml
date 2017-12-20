@@ -37,7 +37,7 @@ jobs:
       env: Type='libzfs'
       language: rust
       rust: stable
-      if: branch =~ ^v.+libzfs$
+      if: branch =~ ^v.+\dlibzfs$
       script:
         - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw intelhpdd/libzfs:version1.0
         - docker exec -i libzfs bash -c "source /root/.cargo/env && cd /rust-libzfs/libzfs && cargo package && cargo publish --token $CARGO_TOKEN"
