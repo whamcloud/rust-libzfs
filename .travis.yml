@@ -18,13 +18,11 @@ jobs:
         - clamscan --quiet -r ./
     - stage: test
       env: Type='ts2fable'
-      language: csharp
-      dotnet: 2.1.2
-      mono: latest
+      language: node_js
+      node_js: 8
       script:
-        - nvm install 8
         - npm i -g ts2fable
-        - ts2fable $(pwd)/node-libzfs/lib/libzfs.d.ts $(pwd)/node-libzfs/lib/out.fs
+        - ts2fable node-libzfs/lib/libzfs.d.ts node-libzfs/libzfs.fs
     - stage: deploy
       env: Type='libzfs-sys'
       language: rust
@@ -47,11 +45,13 @@ jobs:
       node_js: 8
       if: branch =~ ^v.+node-libzfs$
       before_deploy:
+        - npm i -g ts2fable
+        - ts2fable node-libzfs/lib/libzfs.d.ts node-libzfs/libzfs.fs
         - cd node-libzfs
       deploy:
         provider: npm
-        email: $NPM_EMAIL
-        api_key: "NPM_TOKEN"
+        email: "$NPM_EMAIL"
+        api_key: "$NPM_TOKEN"
         skip_cleanup: true
         on:
           tags: true
