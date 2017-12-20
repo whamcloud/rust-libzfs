@@ -41,3 +41,12 @@ jobs:
       script:
         - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw intelhpdd/libzfs:version1.0
         - docker exec -i libzfs bash -c "source /root/.cargo/env && cd /rust-libzfs/libzfs && cargo package && cargo publish --token $CARGO_TOKEN"
+    - stage: deploy
+      env: Type='@iml/node-libzfs'
+      language: node_js
+      node_js: 8
+      if: branch =~ ^v.+node-libzfs$
+      deploy:
+        provider: npm
+        email: $NPM_EMAIL
+        api_key: "NPM_TOKEN"

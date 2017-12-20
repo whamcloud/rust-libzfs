@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Neon bindings to libzfs",
   "main": "lib/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/intel-hpdd/node-libzfs"
