@@ -50,3 +50,5 @@ jobs:
         provider: npm
         email: $NPM_EMAIL
         api_key: "NPM_TOKEN"
+        on:
+          tags: true
