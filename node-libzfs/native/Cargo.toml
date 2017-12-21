@@ -1,6 +1,6 @@
 [package]
 name = "node-libzfs"
-version = "0.1.0"
+version = "0.1.2"
 authors = ["IML Team <iml@intel.com>"]
 license = "MIT"
 build = "build.rs"
@@ -17,4 +17,4 @@ neon = "0.1.22"
 neon-serde = "0.0.1"
 serde = "1.0"
 serde_derive = "1.0"
-libzfs = { git = "https://github.com/intel-hpdd/rust-libzfs.git", rev = "c17504d" }
+libzfs = { path = "../../libzfs-sys", version = "0.1.0" }
