@@ -3,12 +3,16 @@
 // license that can be found in the LICENSE file.
 
 extern crate libzfs_sys as sys;
-extern crate nvpair;
+// extern crate nvpair;
 use std::os::raw::{c_int, c_void};
 use std::ffi::{CStr, CString, IntoStringError};
 use std::{error, fmt, ptr, result, str};
 use std::io::{Error, ErrorKind};
 use nvpair::ForeignType;
+
+#[macro_use]
+extern crate foreign_types;
+mod nvpair;
 
 #[macro_use]
 extern crate serde_derive;

@@ -5,7 +5,8 @@ authors = ["IML Team <iml@intel.com>"]
 
 [dependencies]
 libzfs-sys = { path = "../libzfs-sys", version = "0.1.0" }
-nvpair = { git = "https://github.com/jgrund/rust-libzfs.git", rev = "values-temp" }
 nvpair-sys = "0.1"
 serde = "1.0"
 serde_derive = "1.0"
+foreign-types = "0.3"
+cstr-argument = "0.0"
