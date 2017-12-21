@@ -2,6 +2,8 @@
 name = "libzfs"
 version = "0.1.0"
 authors = ["IML Team <iml@intel.com>"]
+description = "Rust wrapper around libzfs-sys"
+license = "MIT"
 
 [dependencies]
 libzfs-sys = { path = "../libzfs-sys", version = "0.1.0" }
