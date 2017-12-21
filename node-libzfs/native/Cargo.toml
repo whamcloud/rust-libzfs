@@ -1,6 +1,6 @@
 [package]
 name = "node-libzfs"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["IML Team <iml@intel.com>"]
 license = "MIT"
 build = "build.rs"
