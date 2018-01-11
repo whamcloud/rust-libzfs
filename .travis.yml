@@ -46,7 +46,7 @@ jobs:
       if: branch =~ ^v.+node-libzfs$
       before_deploy:
         - npm i -g ts2fable
-        - ts2fable node-libzfs/lib/libzfs.d.ts node-libzfs/libzfs.fs
+        - ts2fable node-libzfs/types/@iml/node-libzfs/index.d.ts node-libzfs/libzfs.fs
         - cd node-libzfs
       deploy:
         provider: npm
