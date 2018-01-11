@@ -22,7 +22,7 @@ jobs:
       node_js: 8
       script:
         - npm i -g ts2fable
-        - ts2fable node-libzfs/lib/libzfs.d.ts node-libzfs/libzfs.fs
+        - ts2fable node-libzfs/types/@iml/node-libzfs/index.d.ts node-libzfs/libzfs.fs
     - stage: deploy
       env: Type='libzfs-sys'
       language: rust
