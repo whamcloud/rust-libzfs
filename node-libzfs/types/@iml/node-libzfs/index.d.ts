@@ -59,4 +59,9 @@ declare module 'libzfs' {
     name: string,
     prop: string
   ): string | null;
+
+  export function getDatasetUint64Prop(
+    name: string,
+    prop: string
+  ): number | null;
 }
