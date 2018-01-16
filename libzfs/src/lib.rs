@@ -127,6 +127,16 @@ impl Zfs {
 
         props.ok()
     }
+    pub fn lookup_uint64_prop(&self, name: &str) -> Option<u64> {
+        let props: Result<u64> = self.props()
+            .lookup_nv_list(name)
+            .map_err(LibZfsError::from)
+            .and_then(|x| {
+                x.lookup_uint64(sys::zfs_value()).map_err(LibZfsError::from)
+            });
+
+        props.ok()
+    }
 }
 
 impl Drop for Zfs {
@@ -460,6 +470,18 @@ mod tests {
         };
 
         assert_eq!(whole_disk, Some(true));
+
+        let datasets = test_pool.datasets().expect("could not fetch datasets");
+
+        let test_dataset = datasets
+            .iter()
+            .find(|x| x.name() == CString::new("test/ds").unwrap())
+            .expect("did not find test dataset");
+
+        assert_eq!(
+            test_dataset.zfs_type_name(),
+            CString::new("filesystem").unwrap()
+        );
 
         z.export_all(&imported_pools).expect(
             "could not export pools",
