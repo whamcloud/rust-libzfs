@@ -45,7 +45,7 @@ jobs:
       node_js: 8
       if: branch =~ ^v.+node-libzfs$
       before_deploy:
-        - npm i -g ts2fable
+        - npm i -g ts2fable@0.6.0-build.174
         - ts2fable node-libzfs/types/@iml/node-libzfs/index.d.ts node-libzfs/libzfs.fs
         - cd node-libzfs
       deploy:
