@@ -12,7 +12,7 @@ extern crate serde_derive;
 
 use std::ffi::CString;
 use neon::vm::{Call, JsResult, Throw};
-use neon::js::{JsNull, JsString, JsValue};
+use neon::js::{JsNull, JsString, JsNumber, JsValue};
 use neon::js::error::{JsError, Kind};
 use libzfs::{Zfs, Libzfs, VDev, Zpool};
 
@@ -91,6 +91,30 @@ fn get_dataset_string_prop(call: Call) -> JsResult<JsValue> {
     }
 }
 
+fn get_dataset_uint64_prop(call: Call) -> JsResult<JsValue> {
+    let scope = call.scope;
+    let mut libzfs = Libzfs::new();
+
+    let ds_name = call.arguments
+        .require(scope, 0)?
+        .check::<JsString>()?
+        .value();
+
+    let prop_name = call.arguments
+        .require(scope, 1)?
+        .check::<JsString>()?
+        .value();
+
+    let x: Option<u64> = libzfs.dataset_by_name(&ds_name).and_then(|x| {
+        x.lookup_uint64_prop(&prop_name)
+    });
+
+    match x {
+        Some(y) => Ok(JsNumber::new(scope, y as f64).upcast()),
+        None => Ok(JsNull::new().upcast()),
+    }
+}
+
 fn get_pool_by_name(call: Call) -> JsResult<JsValue> {
     let scope = call.scope;
     let mut libzfs = Libzfs::new();
@@ -134,5 +158,6 @@ register_module!(m, {
     m.export("getImportedPools", get_imported_pools)?;
     m.export("getPoolByName", get_pool_by_name)?;
     m.export("getDatasetStringProp", get_dataset_string_prop)?;
+    m.export("getDatasetUint64Prop", get_dataset_uint64_prop)?;
     Ok(())
 });
