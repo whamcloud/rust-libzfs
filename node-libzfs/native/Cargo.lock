@@ -317,7 +317,7 @@ dependencies = [
 
 [[package]]
 name = "node-libzfs"
-version = "0.1.4"
+version = "0.1.7"
 dependencies = [
  "libzfs 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "neon 0.1.22 (registry+https://github.com/rust-lang/crates.io-index)",
