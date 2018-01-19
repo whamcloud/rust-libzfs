@@ -33,5 +33,5 @@ su - mocker <<EOF
 set -xe
 cd /builddir/node-libzfs/
 rpmbuild -bs --define epel\ 1 --define package_release\ $RELEASE --define _srcrpmdir\ \$PWD --define _sourcedir\ \$PWD *.spec
-mock iml-node-libzfs-*.src.rpm --rpmbuild-opts="--define package_release\ $RELEASE" --enable-network
+mock iml-node-libzfs-*.src.rpm -v --rpmbuild-opts="--define package_release\ $RELEASE" --enable-network
 EOF
