@@ -21,7 +21,6 @@ BuildRequires: libzfs2-devel
 BuildRequires: zfs
 
 Requires: nodejs
-Requires: zfs
 
 %description
 Implements a binding layer from node to rust-libzfs.
