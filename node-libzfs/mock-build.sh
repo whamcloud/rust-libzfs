@@ -31,7 +31,7 @@ chown -R $MOCK_UID:$MOCK_GID /builddir
 cd /builddir/
 RELEASE=$(git rev-list HEAD | wc -l)
 
-su - mocker <<EOF
+su - mockbuild <<EOF
 set -xe
 cd /builddir/node-libzfs/
 rpmbuild -bs --define epel\ 1 --define package_release\ $RELEASE --define _srcrpmdir\ \$PWD --define _sourcedir\ \$PWD *.spec
