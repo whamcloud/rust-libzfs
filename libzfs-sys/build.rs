@@ -27,6 +27,8 @@ fn main() {
         .whitelisted_var("ZPOOL_CONFIG_DEVID")
         .whitelisted_var("ZPOOL_CONFIG_WHOLE_DISK")
         .whitelisted_var("ZPOOL_CONFIG_IS_LOG")
+        .whitelisted_var("ZPOOL_CONFIG_HOSTID")
+        .whitelisted_var("ZPOOL_CONFIG_HOSTNAME")
         .whitelisted_var("VDEV_TYPE_ROOT")
         .whitelisted_var("VDEV_TYPE_MIRROR")
         .whitelisted_var("VDEV_TYPE_REPLACING")

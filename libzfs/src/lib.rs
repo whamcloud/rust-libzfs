@@ -173,6 +173,18 @@ impl Zpool {
     pub fn prop_int(&self, prop: sys::zpool_prop_t::Type) -> u64 {
         unsafe { sys::zpool_get_prop_int(self.raw, prop, ptr::null_mut()) }
     }
+    pub fn hostname(&self) -> Result<CString> {
+        let config = self.get_config();
+
+        let s = config.lookup_string(sys::zpool_config_hostname())?;
+
+        Ok(s)
+    }
+    pub fn hostid(&self) -> Result<u64> {
+        let s = self.get_config().lookup_uint64(sys::zpool_config_hostid())?;
+
+        Ok(s)
+    }
     pub fn guid(&self) -> u64 {
         self.prop_int(sys::zpool_prop_t::ZPOOL_PROP_GUID)
     }
@@ -458,6 +470,11 @@ mod tests {
         assert_eq!(test_pool.size(), 532575944704);
 
         assert_eq!(test_pool.read_only(), false);
+
+        assert_eq!(
+            test_pool.hostname().unwrap(),
+            CString::new("localhost.localdomain").unwrap()
+        );
 
         let disks = match test_pool.vdev_tree().expect("could not fetch vdev tree") {
             VDev::Root { children } => children,

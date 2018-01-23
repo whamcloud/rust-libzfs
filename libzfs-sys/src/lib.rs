@@ -46,13 +46,20 @@ pub fn zpool_config_whole_disk() -> String {
     utf8_to_string(ZPOOL_CONFIG_WHOLE_DISK)
 }
 
+pub fn zpool_config_hostid() -> String {
+    utf8_to_string(ZPOOL_CONFIG_HOSTID)
+}
+
+pub fn zpool_config_hostname() -> String {
+    utf8_to_string(ZPOOL_CONFIG_HOSTNAME)
+}
+
 pub fn zfs_value() -> String {
     utf8_to_string(ZPROP_VALUE)
 }
 
 pub fn zfs_type_dataset() -> zfs_type_t {
-    zfs_type_t_ZFS_TYPE_FILESYSTEM | zfs_type_t_ZFS_TYPE_VOLUME |
-        zfs_type_t_ZFS_TYPE_SNAPSHOT
+    zfs_type_t_ZFS_TYPE_FILESYSTEM | zfs_type_t_ZFS_TYPE_VOLUME | zfs_type_t_ZFS_TYPE_SNAPSHOT
 }
 
 
