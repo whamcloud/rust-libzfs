@@ -22,14 +22,16 @@ w
 q
 EOF
 
-groupadd --gid $(stat -c '%g' /builddir/node-libzfs/README.md) -o mocker
-useradd --uid $(stat -c '%u' /builddir/node-libzfs/README.md) --gid $(stat -c '%g' /builddir/node-libzfs/README.md) mocker
-usermod -a -G mock mocker
+MOCK_GID=$(getent group mock | cut -d: -f3)
+useradd --gid $MOCK_GID mockbuild
+usermod -a -G mock mockbuild
+MOCK_UID=$(id -u mockbuild)
+chown -R $MOCK_UID:$MOCK_GID /builddir
 
 cd /builddir/
 RELEASE=$(git rev-list HEAD | wc -l)
 
-su - mocker <<EOF
+su - mockbuild <<EOF
 set -xe
 cd /builddir/node-libzfs/
 rpmbuild -bs --define epel\ 1 --define package_release\ $RELEASE --define _srcrpmdir\ \$PWD --define _sourcedir\ \$PWD *.spec
