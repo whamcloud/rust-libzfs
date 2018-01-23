@@ -22,11 +22,7 @@ w
 q
 EOF
 
-MOCK_GID=$(getent group mock | cut -d: -f3)
-useradd --gid $MOCK_GID mockbuild
-usermod -a -G mock mockbuild
-MOCK_UID=$(id -u mockbuild)
-chown -R $MOCK_UID:$MOCK_GID /builddir
+chown -R mockbuild:mock /builddir
 
 cd /builddir/
 RELEASE=$(git rev-list HEAD | wc -l)
