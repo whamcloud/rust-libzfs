@@ -67,7 +67,7 @@ jobs:
           tags: true
     - stage: deploy
       env: Type='bintray master deploy'
-      if: branch = master
+      if: branch = master AND env(TRAVIS_PULL_REQUEST_BRANCH) IS blank AND env(TRAVIS_TAG) IS blank
       language: node_js
       node_js: 8
       script:
