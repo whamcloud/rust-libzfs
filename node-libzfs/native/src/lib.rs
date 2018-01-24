@@ -20,6 +20,8 @@ use libzfs::{Zfs, Libzfs, VDev, Zpool};
 struct Pool {
     name: String,
     uid: String,
+    hostname: String,
+    hostid: u64,
     state: String,
     size: u64,
     vdev: VDev,
@@ -55,9 +57,19 @@ fn convert_to_js_pool(p: &Zpool) -> Result<Pool, Throw> {
         .collect::<Result<Vec<JsDataset>, Throw>>()?;
 
 
+    let hostname = p.hostname().or_else(|_| {
+        JsError::throw(Kind::Error, "Could not get hostname")
+    })?;
+
+    let hostid = p.hostid().or_else(|_| {
+        JsError::throw(Kind::Error, "Could not get hostid")
+    })?;
+
     Ok(Pool {
         name: c_string_to_string(p.name())?,
         uid: p.guid_hex(),
+        hostname: c_string_to_string(hostname)?,
+        hostid,
         state: c_string_to_string(p.state_name())?,
         size: p.size(),
         vdev: p.vdev_tree().or_else(|_| {

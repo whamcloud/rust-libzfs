@@ -14,6 +14,7 @@ declare module 'libzfs' {
 
   export interface Disk {
     path: string;
+    dev_id?: string;
     phys_path?: string;
     whole_disk?: boolean;
     is_log: boolean;
@@ -45,6 +46,8 @@ declare module 'libzfs' {
   export interface Pool {
     name: string;
     uid: string;
+    hostname: string;
+    hostid: number;
     state: string;
     size: number;
     vdev: VDev;
