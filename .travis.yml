@@ -23,6 +23,7 @@ jobs:
       script:
         - npm i -g ts2fable@0.6.0-build.174
         - ts2fable node-libzfs/types/@iml/node-libzfs/index.d.ts node-libzfs/libzfs.fs
+        - cat node-libzfs/libzfs.fs
     - stage: test
       env: Type='mock build'
       language: node_js
@@ -31,11 +32,7 @@ jobs:
         - cd node-libzfs
         - npm pack
         - rename 's/^iml\-//' iml-node-libzfs-*.tgz
-        - cd ../
-        - docker run -dit --privileged --name mock intelhpdd/mock /usr/sbin/init
-        - docker cp -a ./ mock:/builddir
-        - docker exec -ti mock bash -xec "bash -xe /builddir/node-libzfs/mock-build.sh"
-        - PACKAGE_VERSION=$(node -p -e "require('./node-libzfs/package.json').version") && docker exec -ti mock bash -xec "curl -T /var/lib/mock/epel-7-x86_64/result/iml-node-libzfs-$PACKAGE_VERSION-*.el7.centos.x86_64.rpm -u$BINTRAY_USER:$BINTRAY_KEY https://api.bintray.com/content/intel-hpdd/intelhpdd-build/iml-node-libzfs/$PACKAGE_VERSION/;publish=1"
+        - npm run mock
     - stage: deploy
       env: Type='libzfs-sys'
       language: rust
