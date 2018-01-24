@@ -1,6 +1,6 @@
 {
   "name": "@iml/node-libzfs",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Neon bindings to libzfs",
   "main": "lib/index.js",
   "publishConfig": {

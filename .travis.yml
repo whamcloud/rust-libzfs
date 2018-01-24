@@ -67,7 +67,7 @@ jobs:
           tags: true
     - stage: deploy
       env: Type='bintray master deploy'
-      if: branch = master AND env(TRAVIS_PULL_REQUEST_BRANCH) IS blank AND env(TRAVIS_TAG) IS blank
+      if: branch = master AND env(TRAVIS_PULL_REQUEST) = 'false' AND env(TRAVIS_TAG) IS blank
       language: node_js
       node_js: 8
       script:
@@ -75,5 +75,5 @@ jobs:
         - npm pack
         - rename 's/^iml\-//' iml-node-libzfs-*.tgz
         - npm run mock
-        - PACKAGE_VERSION=$(node -p -e "require('./node-libzfs/package.json').version") && docker exec -ti mock bash -xec "curl -T /var/lib/mock/epel-7-x86_64/result/iml-node-libzfs-$PACKAGE_VERSION-*.el7.centos.x86_64.rpm -u$BINTRAY_USER:$BINTRAY_KEY https://api.bintray.com/content/intel-hpdd/intelhpdd-build/iml-node-libzfs/$PACKAGE_VERSION/;publish=1"
+        - PACKAGE_VERSION=$(node -p -e "require('./package.json').version") && docker exec -ti mock bash -xec "curl -T /var/lib/mock/epel-7-x86_64/result/iml-node-libzfs-$PACKAGE_VERSION-*.el7.centos.x86_64.rpm -u$BINTRAY_USER:$BINTRAY_KEY https://api.bintray.com/content/intel-hpdd/intelhpdd-build/iml-node-libzfs/$PACKAGE_VERSION/;publish=1"
 
