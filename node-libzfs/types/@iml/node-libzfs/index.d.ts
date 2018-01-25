@@ -47,7 +47,7 @@ declare module 'libzfs' {
     name: string;
     uid: string;
     hostname: string;
-    hostid: number;
+    hostid: number | null;
     state: string;
     size: number;
     vdev: VDev;
