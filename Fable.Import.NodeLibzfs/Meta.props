@@ -1,0 +1,10 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Description>Fable bindings for node-libzfs</Description>
+    <PackageProjectUrl>https://github.com/intel-hpdd/rust-libzfs</PackageProjectUrl>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/intel-hpdd/rust-libzfs/master/LICENSE</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/intel-hpdd/rust-libzfs.git</RepositoryUrl>
+    <PackageTags>node;zfs;fable</PackageTags>
+    <Authors>IML Team</Authors>
+  </PropertyGroup>
+</Project>

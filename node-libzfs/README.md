@@ -6,8 +6,6 @@ Implements a binding layer from node to [rust-libzfs](https://github.com/intel-h
 
 This allows native interop with libzfs. The current API has a small scope, but will expand over time as more use-cases arise.
 
-Checkout [the typescript declaration file](libzfs.d.ts) for the current public API.
-
 ## Prereqs
 
 Since this is a native module via rust, there are a few build / install time dependencies.

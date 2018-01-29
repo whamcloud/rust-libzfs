@@ -17,14 +17,6 @@ jobs:
         - sudo freshclam
         - clamscan --quiet -r ./
     - stage: test
-      env: Type='ts2fable'
-      language: node_js
-      node_js: 8
-      script:
-        - npm i -g ts2fable@0.6.0-build.174
-        - ts2fable node-libzfs/types/@iml/node-libzfs/index.d.ts node-libzfs/libzfs.fs
-        - cat node-libzfs/libzfs.fs
-    - stage: test
       env: Type='mock build'
       language: node_js
       node_js: 8
@@ -55,8 +47,6 @@ jobs:
       node_js: 8
       if: branch =~ ^v.+node-libzfs$
       before_deploy:
-        - npm i -g ts2fable@0.6.0-build.174
-        - ts2fable node-libzfs/types/@iml/node-libzfs/index.d.ts node-libzfs/libzfs.fs
         - cd node-libzfs
       deploy:
         provider: npm
@@ -65,6 +55,17 @@ jobs:
         skip_cleanup: true
         on:
           tags: true
+    - stage: deploy
+      env: Type='Fable.Import.NodeLibzfs'
+      language: csharp
+      dotnet: 2.1.4
+      mono: latest
+      if: branch =~ ^v.+fable-import-nodelibzfs$
+      script:
+          - cd Fable.Import.NodeLibzfs
+          - dotnet pack
+          - cd bin/Debug
+          - dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k $NUGET_KEY
     - stage: deploy
       env: Type='bintray master deploy'
       if: branch = master AND env(TRAVIS_TAG) IS blank
