@@ -3,7 +3,7 @@ module rec libzfs
 open Fable.Core
 open Fable.Import.JS
 
-let [<Import("*","@iml/node-libzfs")>] libzfs: Libzfs.IExports = jsNative
+let [<Import("default","@iml/node-libzfs")>] libzfs: Libzfs.IExports = jsNative
 
 module Libzfs =
 
