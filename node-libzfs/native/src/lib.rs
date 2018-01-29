@@ -65,7 +65,7 @@ fn convert_to_js_pool(p: &Zpool) -> Result<Pool, Throw> {
 
     Ok(Pool {
         name: c_string_to_string(p.name())?,
-        uid: p.guid_hex(),
+        uid: p.guid_hex().to_uppercase(),
         hostname: c_string_to_string(hostname)?,
         hostid,
         state: c_string_to_string(p.state_name())?,
