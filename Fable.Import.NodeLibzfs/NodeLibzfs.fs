@@ -1,7 +1,6 @@
 // ts2fable 0.1.9
 module rec libzfs
 open Fable.Core
-open Fable.Import.JS
 
 let [<Import("default","@iml/node-libzfs")>] libzfs: Libzfs.IExports = jsNative
 
