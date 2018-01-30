@@ -16,11 +16,9 @@
     "neon-cli": "^0.1.22"
   },
   "scripts": {
-    "premock":
-      "docker run  -dit --privileged --name mock intelhpdd/mock /usr/sbin/init",
+    "premock": "docker run  -dit --privileged --name mock intelhpdd/mock /usr/sbin/init",
     "mock": "cd ../ && docker cp -a ./ mock:/builddir",
-    "postmock":
-      "docker exec -ti mock bash -xec 'bash -xe /builddir/node-libzfs/mock-build.sh'",
+    "postmock": "docker exec -ti mock bash -xec 'bash -xe /builddir/node-libzfs/mock-build.sh'",
     "install": "neon build"
   }
 }
