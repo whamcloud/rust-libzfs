@@ -173,6 +173,33 @@ impl Zpool {
     pub fn prop_int(&self, prop: sys::zpool_prop_t::Type) -> u64 {
         unsafe { sys::zpool_get_prop_int(self.raw, prop, ptr::null_mut()) }
     }
+    pub fn prop_str(&self, prop: sys::zpool_prop_t::Type) -> Result<CString> {
+        let s = String::with_capacity(sys::ZPOOL_MAXPROPLEN as usize);
+        let c_string = CString::new(s).unwrap();
+        let raw = c_string.into_raw();
+
+        unsafe {
+            let r = sys::zpool_get_prop(
+                self.raw,
+                prop,
+                raw,
+                sys::ZPOOL_MAXPROPLEN as usize,
+                ptr::null_mut(),
+                sys::boolean_B_FALSE,
+            );
+
+            let out = CString::from_raw(raw);
+
+            if r != 0 {
+                Err(::std::io::Error::from_raw_os_error(r))?
+            } else {
+                Ok(out)
+            }
+        }
+    }
+    pub fn health(&self) -> Result<CString> {
+        self.prop_str(sys::zpool_prop_t::ZPOOL_PROP_HEALTH)
+    }
     pub fn hostname(&self) -> Result<CString> {
         let config = self.get_config();
 
@@ -464,6 +491,8 @@ mod tests {
             .iter()
             .find(|x| x.name() == CString::new("test").unwrap())
             .expect("did not find test pool");
+
+        assert_eq!(test_pool.health().unwrap(), CString::new("ONLINE").unwrap());
 
         assert_eq!(test_pool.state_name(), CString::new("ACTIVE").unwrap());
 
