@@ -68,7 +68,7 @@ jobs:
           - dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k $NUGET_KEY
     - stage: deploy
       env: Type='bintray master deploy'
-      if: branch = master AND env(TRAVIS_TAG) IS blank AND env(TRAVIS_PULL_REQUEST) = false AND env(TRAVIS_BRANCH) = master
+      if: branch = master AND env(TRAVIS_TAG) IS blank
       language: node_js
       node_js: 8
       script:

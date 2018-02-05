@@ -75,6 +75,8 @@ pub enum VDev {
     Spare { children: Vec<VDev> },
     Root { children: Vec<VDev> },
     Disk {
+        guid: Option<String>,
+        state: String,
         path: String,
         dev_id: Option<String>,
         phys_path: Option<String>,
@@ -299,6 +301,9 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
 
     match x {
         x if x == sys::VDEV_TYPE_DISK => {
+            let guid = tree.lookup_uint64(sys::zpool_config_guid())
+                .map(|x| format!("{:#x}", x))
+                .ok();
             let path = tree.lookup_string(sys::zpool_config_path())?.into_string()?;
             let dev_id = lookup_tree_str(tree, sys::zpool_config_dev_id())?;
             let phys_path = lookup_tree_str(tree, sys::zpool_config_phys_path())?;
@@ -306,10 +311,34 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
                 .map(|x| x == 1)
                 .ok();
             let whole_disk = tree.lookup_uint64(sys::zpool_config_whole_disk())
-                .ok()
-                .map(|x| x == 1);
+                .map(|x| x == 1)
+                .ok();
+
+            let vdev_stats = tree.lookup_uint64_array(sys::zpool_config_vdev_stats())
+                .map(sys::to_vdev_stat)?;
+
+            let state = unsafe {
+                let s = sys::zpool_state_to_name(
+                    sys::to_vdev_state(vdev_stats.vs_state as u32).ok_or(
+                        Error::new(
+                            ErrorKind::NotFound,
+                            "vs_state not in enum range",
+                        ),
+                    )?,
+                    sys::to_vdev_aux(vdev_stats.vs_aux as u32).ok_or(
+                        Error::new(
+                            ErrorKind::NotFound,
+                            "vs_aux not in enum range",
+                        ),
+                    )?,
+                );
+
+                CStr::from_ptr(s)
+            };
 
             Ok(VDev::Disk {
+                guid,
+                state: state.to_owned().into_string()?,
                 path,
                 dev_id,
                 phys_path,
@@ -510,12 +539,18 @@ mod tests {
             _ => panic!("did not find root device"),
         };
 
-        let whole_disk = match disks[0] {
-            VDev::Disk { whole_disk, .. } => whole_disk,
+        let (whole_disk, state) = match disks[0] {
+            VDev::Disk {
+                whole_disk,
+                ref state,
+                ..
+            } => (whole_disk, state),
             _ => panic!("did not find disk"),
         };
 
         assert_eq!(whole_disk, Some(true));
+
+        assert_eq!(state, "ONLINE");
 
         let datasets = test_pool.datasets().expect("could not fetch datasets");
 
