@@ -20,6 +20,7 @@ use libzfs::{Zfs, Libzfs, VDev, Zpool};
 struct Pool {
     name: String,
     uid: String,
+    health: String,
     hostname: String,
     hostid: Option<u64>,
     state: String,
@@ -63,8 +64,13 @@ fn convert_to_js_pool(p: &Zpool) -> Result<Pool, Throw> {
 
     let hostid = p.hostid().ok();
 
+    let health = p.health().or_else(|_| {
+        JsError::throw(Kind::Error, "Could not get health")
+    })?;
+
     Ok(Pool {
         name: c_string_to_string(p.name())?,
+        health: c_string_to_string(health)?,
         uid: p.guid_hex(),
         hostname: c_string_to_string(hostname)?,
         hostid,

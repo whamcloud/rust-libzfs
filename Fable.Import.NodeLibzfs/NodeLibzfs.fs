@@ -70,6 +70,7 @@ module Libzfs =
         abstract name: string with get, set
         abstract uid: string with get, set
         abstract hostname: string with get, set
+        abstract health: string with get, set
         abstract hostid: float option with get, set
         abstract state: string with get, set
         abstract size: float with get, set
