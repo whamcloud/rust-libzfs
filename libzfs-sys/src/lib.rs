@@ -54,15 +54,43 @@ pub fn zpool_config_hostname() -> String {
     utf8_to_string(ZPOOL_CONFIG_HOSTNAME)
 }
 
+pub fn zpool_config_guid() -> String {
+    utf8_to_string(ZPOOL_CONFIG_GUID)
+}
+
 pub fn zfs_value() -> String {
     utf8_to_string(ZPROP_VALUE)
+}
+
+pub fn zpool_config_vdev_stats() -> String {
+    utf8_to_string(ZPOOL_CONFIG_VDEV_STATS)
 }
 
 pub fn zfs_type_dataset() -> zfs_type_t {
     zfs_type_t_ZFS_TYPE_FILESYSTEM | zfs_type_t_ZFS_TYPE_VOLUME | zfs_type_t_ZFS_TYPE_SNAPSHOT
 }
 
+pub fn to_vdev_stat(mut xs: Vec<u64>) -> vdev_stat_t {
+    xs.shrink_to_fit();
 
+    unsafe { std::ptr::read(xs.as_ptr() as *const _) }
+}
+
+pub fn to_vdev_state(n: u32) -> Option<vdev_state_t> {
+    if n <= 7 {
+        Some(unsafe { std::mem::transmute(n) })
+    } else {
+        None
+    }
+}
+
+pub fn to_vdev_aux(n: u32) -> Option<vdev_aux_t> {
+    if n <= 18 {
+        Some(unsafe { std::mem::transmute(n) })
+    } else {
+        None
+    }
+}
 
 #[cfg(test)]
 mod tests {

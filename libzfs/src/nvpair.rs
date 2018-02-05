@@ -39,7 +39,8 @@ impl NvEncode for bool {
 impl NvEncode for u32 {
     fn insert<S: CStrArgument>(&self, name: S, nv: &mut NvListRef) -> io::Result<()> {
         let name = name.into_cstr();
-        let v = unsafe { nv_sys::nvlist_add_uint32(nv.as_mut_ptr(), name.as_ref().as_ptr(), *self) };
+        let v =
+            unsafe { nv_sys::nvlist_add_uint32(nv.as_mut_ptr(), name.as_ref().as_ptr(), *self) };
         if v != 0 {
             Err(io::Error::from_raw_os_error(v))
         } else {
@@ -314,6 +315,37 @@ impl NvListRef {
                 ::std::slice::from_raw_parts(n, len as usize)
                     .iter()
                     .map(|x| NvList::from_ptr(*x))
+                    .collect()
+            };
+
+            Ok(r)
+        }
+    }
+
+    pub fn lookup_uint64_array<S: CStrArgument>(&self, name: S) -> io::Result<Vec<u64>> {
+        let name = name.into_cstr();
+
+        let mut n = ptr::null_mut();
+
+        let mut len: c_uint;
+
+        let v = unsafe {
+            len = mem::uninitialized();
+            nv_sys::nvlist_lookup_uint64_array(
+                self.as_ptr() as *mut _,
+                name.as_ref().as_ptr(),
+                &mut n,
+                &mut len,
+            )
+        };
+
+        if v != 0 {
+            Err(io::Error::from_raw_os_error(v))
+        } else {
+            let r = unsafe {
+                ::std::slice::from_raw_parts(n, len as usize)
+                    .iter()
+                    .map(|x| *x)
                     .collect()
             };
 
