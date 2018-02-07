@@ -4,7 +4,7 @@
 Name:       iml-%{base_name}
 Version:    0.1.10
 Release:    %{package_release}%{?dist}
-Summary:    Implements a binding layer from node to rust-libzfs.
+Summary:    Implements a binding layer from node to rust-libzfs
 License:    MIT
 Group:      System Environment/Libraries
 URL:        https://github.com/intel-hpdd/rust-libzfs/tree/master/%{base_name}
