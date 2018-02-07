@@ -271,6 +271,23 @@ impl Zpool {
             x => Err(LibZfsError::Io(Error::from_raw_os_error(x))),
         }
     }
+    pub fn disable_datasets(&self) -> Result<()> {
+        let code = unsafe { sys::zpool_disable_datasets(self.raw, sys::boolean_B_FALSE) };
+
+        match code {
+            0 => Ok(()),
+            e => Err(LibZfsError::Io(Error::from_raw_os_error(e))),
+        }
+    }
+    pub fn export(&self) -> Result<()> {
+
+        let code = unsafe { sys::zpool_export(self.raw, sys::boolean_B_FALSE, ptr::null_mut()) };
+
+        match code {
+            0 => Ok(()),
+            e => Err(LibZfsError::Io(Error::from_raw_os_error(e))),
+        }
+    }
 }
 
 impl Drop for Zpool {
@@ -454,15 +471,7 @@ impl Libzfs {
     pub fn export_all(&mut self, pools: &[Zpool]) -> Result<Vec<()>> {
         pools
             .iter()
-            .map(|x| {
-                let code =
-                    unsafe { sys::zpool_export(x.raw, sys::boolean_B_FALSE, ptr::null_mut()) };
-
-                match code {
-                    0 => Ok(()),
-                    x => Err(LibZfsError::Io(Error::from_raw_os_error(x))),
-                }
-            })
+            .map(|x| x.disable_datasets().and_then(|_| x.export()))
             .collect()
     }
     pub fn get_imported_pools(&mut self) -> Result<Vec<Zpool>> {

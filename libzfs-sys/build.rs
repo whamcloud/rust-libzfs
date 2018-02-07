@@ -81,11 +81,12 @@ fn main() {
         .whitelisted_function("zfs_get_type")
         .whitelisted_function("zfs_type_to_name")
         .whitelisted_function("zfs_path_to_zhandle")
+        .whitelisted_function("zpool_disable_datasets")
         .whitelisted_function("libzfs_error_description")
         .whitelisted_function("zfs_prop_get")
         .clang_arg("-I/usr/lib/gcc/x86_64-redhat-linux/4.8.2/include/")
-        .clang_arg("-I/usr/src/zfs-0.7.5/lib/libspl/include/")
-        .clang_arg("-I/usr/src/zfs-0.7.5/include/")
+        .clang_arg("-I/usr/src/zfs-0.7.6/lib/libspl/include/")
+        .clang_arg("-I/usr/src/zfs-0.7.6/include/")
         .generate()
         .expect("Unable to generate bindings");
 
