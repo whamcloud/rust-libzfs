@@ -75,7 +75,7 @@ jobs:
         - cd node-libzfs
         - PACKAGE_VERSION=$(node -p -e "require('./package.json').version")
         - RELEASE=$(git rev-list HEAD | wc -l)
-        - RPM_NAME=iml-node-libzfs-$PACKAGE_VERSION-*.el7.centos.x86_64.rpm
+        - RPM_NAME=iml-node-libzfs-$PACKAGE_VERSION-$RELEASE.el7.centos.x86_64.rpm
         - npm pack
         - rename 's/^iml\-//' iml-node-libzfs-*.tgz
         - npm run mock
