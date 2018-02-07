@@ -218,7 +218,7 @@ impl Zpool {
         self.prop_int(sys::zpool_prop_t::ZPOOL_PROP_GUID)
     }
     pub fn guid_hex(&self) -> String {
-        format!("{:#x}", self.guid())
+        format!("{:#018X}", self.guid())
     }
     pub fn size(&self) -> u64 {
         self.prop_int(sys::zpool_prop_t::ZPOOL_PROP_SIZE)
@@ -319,7 +319,7 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
     match x {
         x if x == sys::VDEV_TYPE_DISK => {
             let guid = tree.lookup_uint64(sys::zpool_config_guid())
-                .map(|x| format!("{:#x}", x))
+                .map(|x| format!("{:#018X}", x))
                 .ok();
             let path = tree.lookup_string(sys::zpool_config_path())?.into_string()?;
             let dev_id = lookup_tree_str(tree, sys::zpool_config_dev_id())?;
