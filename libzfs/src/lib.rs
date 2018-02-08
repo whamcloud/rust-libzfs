@@ -73,7 +73,12 @@ pub enum VDev {
     RaidZ { children: Vec<VDev> },
     Replacing { children: Vec<VDev> },
     Spare { children: Vec<VDev> },
-    Root { children: Vec<VDev> },
+    Root {
+        children: Vec<VDev>,
+        spares: Vec<VDev>,
+        cache: Vec<VDev>,
+    },
+    Cache { children: Vec<VDev> },
     Disk {
         guid: Option<String>,
         state: String,
@@ -83,7 +88,12 @@ pub enum VDev {
         whole_disk: Option<bool>,
         is_log: Option<bool>,
     },
-    File { path: String },
+    File {
+        guid: Option<String>,
+        state: String,
+        path: String,
+        is_log: Option<bool>,
+    },
 }
 
 #[derive(Debug, PartialEq)]
@@ -307,6 +317,20 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
             .collect()
     }
 
+    fn get_spares(tree: &nvpair::NvList) -> Result<Vec<VDev>> {
+        tree.lookup_nv_list_array(sys::zpool_config_spares())?
+            .iter()
+            .map(enumerate_vdev_tree)
+            .collect()
+    }
+
+    fn get_cache(tree: &nvpair::NvList) -> Result<Vec<VDev>> {
+        tree.lookup_nv_list_array(sys::zpool_config_l2cache())?
+            .iter()
+            .map(enumerate_vdev_tree)
+            .collect()
+    }
+
     fn lookup_tree_str(tree: &nvpair::NvList, name: String) -> Result<Option<String>> {
         let x = tree.lookup_string(name);
 
@@ -316,57 +340,72 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
         }
     }
 
+    fn lookup_is_log(tree: &nvpair::NvList) -> Option<bool> {
+        tree.lookup_uint64(sys::zpool_config_is_log())
+            .map(|x| x == 1)
+            .ok()
+    }
+
+    fn lookup_guid(tree: &nvpair::NvList) -> Option<String> {
+        tree.lookup_uint64(sys::zpool_config_guid())
+            .map(|x| format!("{:#018X}", x))
+            .ok()
+    }
+
+    fn lookup_state(tree: &nvpair::NvList) -> Result<String> {
+        let vdev_stats = tree.lookup_uint64_array(sys::zpool_config_vdev_stats())
+            .map(sys::to_vdev_stat)?;
+
+        let state = unsafe {
+            let s = sys::zpool_state_to_name(
+                sys::to_vdev_state(vdev_stats.vs_state as u32).ok_or(
+                    Error::new(
+                        ErrorKind::NotFound,
+                        "vs_state not in enum range",
+                    ),
+                )?,
+                sys::to_vdev_aux(vdev_stats.vs_aux as u32).ok_or(
+                    Error::new(
+                        ErrorKind::NotFound,
+                        "vs_aux not in enum range",
+                    ),
+                )?,
+            );
+
+            CStr::from_ptr(s)
+        };
+
+        state.to_owned().into_string().map_err(LibZfsError::from)
+    }
+
     match x {
         x if x == sys::VDEV_TYPE_DISK => {
-            let guid = tree.lookup_uint64(sys::zpool_config_guid())
-                .map(|x| format!("{:#018X}", x))
-                .ok();
             let path = tree.lookup_string(sys::zpool_config_path())?.into_string()?;
             let dev_id = lookup_tree_str(tree, sys::zpool_config_dev_id())?;
             let phys_path = lookup_tree_str(tree, sys::zpool_config_phys_path())?;
-            let is_log = tree.lookup_uint64(sys::zpool_config_is_log())
-                .map(|x| x == 1)
-                .ok();
             let whole_disk = tree.lookup_uint64(sys::zpool_config_whole_disk())
                 .map(|x| x == 1)
                 .ok();
 
-            let vdev_stats = tree.lookup_uint64_array(sys::zpool_config_vdev_stats())
-                .map(sys::to_vdev_stat)?;
-
-            let state = unsafe {
-                let s = sys::zpool_state_to_name(
-                    sys::to_vdev_state(vdev_stats.vs_state as u32).ok_or(
-                        Error::new(
-                            ErrorKind::NotFound,
-                            "vs_state not in enum range",
-                        ),
-                    )?,
-                    sys::to_vdev_aux(vdev_stats.vs_aux as u32).ok_or(
-                        Error::new(
-                            ErrorKind::NotFound,
-                            "vs_aux not in enum range",
-                        ),
-                    )?,
-                );
-
-                CStr::from_ptr(s)
-            };
-
             Ok(VDev::Disk {
-                guid,
-                state: state.to_owned().into_string()?,
+                guid: lookup_guid(tree),
+                state: lookup_state(tree)?,
                 path,
                 dev_id,
                 phys_path,
                 whole_disk,
-                is_log,
+                is_log: lookup_is_log(tree),
             })
         }
         x if x == sys::VDEV_TYPE_FILE => {
             let path = tree.lookup_string(sys::zpool_config_path())?.into_string()?;
 
-            Ok(VDev::File { path })
+            Ok(VDev::File {
+                guid: lookup_guid(tree),
+                state: lookup_state(tree)?,
+                path,
+                is_log: lookup_is_log(tree),
+            })
         }
         x if x == sys::VDEV_TYPE_MIRROR => {
             let children = get_children(tree)?;
@@ -394,7 +433,20 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
         x if x == sys::VDEV_TYPE_ROOT => {
             let children = get_children(tree)?;
 
-            Ok(VDev::Root { children })
+            let spares = get_spares(tree)?;
+
+            let cache = get_cache(tree)?;
+
+            Ok(VDev::Root {
+                children,
+                spares,
+                cache,
+            })
+        }
+        x if x == sys::VDEV_TYPE_L2CACHE => {
+            let children = get_children(tree)?;
+
+            Ok(VDev::Cache { children })
         }
         _ => Err(LibZfsError::Io(
             Error::new(ErrorKind::NotFound, "hit unknown vdev type"),
@@ -534,7 +586,7 @@ mod tests {
 
         assert_eq!(test_pool.state_name(), CString::new("ACTIVE").unwrap());
 
-        assert_eq!(test_pool.size(), 532575944704);
+        assert_eq!(test_pool.size(), 83886080);
 
         assert_eq!(test_pool.read_only(), false);
 
@@ -543,9 +595,14 @@ mod tests {
             CString::new("localhost.localdomain").unwrap()
         );
 
-        let disks = match test_pool.vdev_tree().expect("could not fetch vdev tree") {
-            VDev::Root { children } => children,
+        let mirror = match test_pool.vdev_tree().expect("could not fetch vdev tree") {
+            VDev::Root { children, .. } => children,
             _ => panic!("did not find root device"),
+        };
+
+        let disks = match mirror[0] {
+            VDev::Mirror { ref children, .. } => children,
+            _ => panic!("did not find mirror"),
         };
 
         let (whole_disk, state) = match disks[0] {
@@ -573,8 +630,6 @@ mod tests {
             CString::new("filesystem").unwrap()
         );
 
-        z.export_all(&imported_pools).expect(
-            "could not export pools",
-        );
+        z.export_all(&imported_pools).unwrap();
     }
 }
