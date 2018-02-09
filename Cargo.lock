@@ -171,7 +171,7 @@ dependencies = [
 
 [[package]]
 name = "libzfs"
-version = "0.6.1"
+version = "0.6.2"
 dependencies = [
  "cstr-argument 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "foreign-types 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",

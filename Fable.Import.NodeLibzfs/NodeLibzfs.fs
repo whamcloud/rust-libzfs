@@ -16,6 +16,8 @@ module Libzfs =
 
     type [<AllowNullLiteral>] Root =
         abstract children: VDev list with get, set
+        abstract spares: VDev list with get, set
+        abstract cache: VDev list with get, set
 
     type [<AllowNullLiteral>] FileNode =
         abstract File: File with get, set
@@ -57,18 +59,6 @@ module Libzfs =
     type [<AllowNullLiteral>] Replacing =
         abstract children: VDev list with get, set
 
-    type [<AllowNullLiteral>] SpareNode =
-        abstract Spare: Spare with get, set
-
-    type [<AllowNullLiteral>] Spare =
-        abstract children: VDev list with get, set
-
-    type [<AllowNullLiteral>] CacheNode =
-        abstract Cache: VDev list with get, set
-
-    type [<AllowNullLiteral>] Cache =
-        abstract children: VDev list with get, set
-
     [<Erase>]
     type VDev =
         | Root of RootNode
@@ -77,8 +67,6 @@ module Libzfs =
         | Mirror of MirrorNode
         | RaidZ of RaidZNode
         | Replacing of ReplacingNode
-        | Spare of SpareNode
-        | Cache of CacheNode
 
     type [<AllowNullLiteral>] Dataset =
         abstract name: string with get, set
