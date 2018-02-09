@@ -72,13 +72,11 @@ pub enum VDev {
     },
     RaidZ { children: Vec<VDev> },
     Replacing { children: Vec<VDev> },
-    Spare { children: Vec<VDev> },
     Root {
         children: Vec<VDev>,
         spares: Vec<VDev>,
         cache: Vec<VDev>,
     },
-    Cache { children: Vec<VDev> },
     Disk {
         guid: Option<String>,
         state: String,
@@ -318,17 +316,21 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
     }
 
     fn get_spares(tree: &nvpair::NvList) -> Result<Vec<VDev>> {
-        tree.lookup_nv_list_array(sys::zpool_config_spares())?
-            .iter()
-            .map(enumerate_vdev_tree)
-            .collect()
+        let spares = tree.lookup_nv_list_array(sys::zpool_config_spares());
+
+        match spares {
+            Ok(x) => x.iter().map(enumerate_vdev_tree).collect(),
+            Err(_) => Ok(vec![]),
+        }
     }
 
     fn get_cache(tree: &nvpair::NvList) -> Result<Vec<VDev>> {
-        tree.lookup_nv_list_array(sys::zpool_config_l2cache())?
-            .iter()
-            .map(enumerate_vdev_tree)
-            .collect()
+        let cache = tree.lookup_nv_list_array(sys::zpool_config_l2cache());
+
+        match cache {
+            Ok(x) => x.iter().map(enumerate_vdev_tree).collect(),
+            Err(_) => Ok(vec![]),
+        }
     }
 
     fn lookup_tree_str(tree: &nvpair::NvList, name: String) -> Result<Option<String>> {
@@ -425,11 +427,6 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
 
             Ok(VDev::Replacing { children })
         }
-        x if x == sys::VDEV_TYPE_SPARE => {
-            let children = get_children(tree)?;
-
-            Ok(VDev::Spare { children })
-        }
         x if x == sys::VDEV_TYPE_ROOT => {
             let children = get_children(tree)?;
 
@@ -442,11 +439,6 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
                 spares,
                 cache,
             })
-        }
-        x if x == sys::VDEV_TYPE_L2CACHE => {
-            let children = get_children(tree)?;
-
-            Ok(VDev::Cache { children })
         }
         _ => Err(LibZfsError::Io(
             Error::new(ErrorKind::NotFound, "hit unknown vdev type"),
@@ -557,14 +549,12 @@ impl Drop for Libzfs {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::panic;
 
-    #[test]
-    fn open_close_handle() {
-        Libzfs::new();
-    }
-
-    #[test]
-    fn import_check_methods_export() {
+    fn test_pools<F: Fn(&Vec<Zpool>) -> ()>(f: F) -> ()
+    where
+        F: std::panic::RefUnwindSafe,
+    {
         let mut z = Libzfs::new();
 
         let pools_to_import = z.find_importable_pools();
@@ -573,63 +563,220 @@ mod tests {
             "could not import pools",
         );
 
-        let imported_pools = z.get_imported_pools().expect(
+        let pools = z.get_imported_pools().expect(
             "could not get imported pools",
         );
 
-        let test_pool = imported_pools
-            .iter()
-            .find(|x| x.name() == CString::new("test").unwrap())
-            .expect("did not find test pool");
+        let result = panic::catch_unwind(|| { f(&pools); });
 
-        assert_eq!(test_pool.health().unwrap(), CString::new("ONLINE").unwrap());
+        z.export_all(&pools).unwrap();
 
-        assert_eq!(test_pool.state_name(), CString::new("ACTIVE").unwrap());
+        result.unwrap();
+    }
 
-        assert_eq!(test_pool.size(), 83886080);
+    fn pool_by_name<F: Fn(&Zpool) -> ()>(name: &str, f: F) -> ()
+    where
+        F: std::panic::RefUnwindSafe,
+    {
 
-        assert_eq!(test_pool.read_only(), false);
+        test_pools(|xs| {
 
-        assert_eq!(
-            test_pool.hostname().unwrap(),
-            CString::new("localhost.localdomain").unwrap()
-        );
+            let x = xs.iter()
+                .find(|x| x.name() == CString::new(name).unwrap())
+                .expect("did not find test pool");
 
-        let mirror = match test_pool.vdev_tree().expect("could not fetch vdev tree") {
-            VDev::Root { children, .. } => children,
-            _ => panic!("did not find root device"),
-        };
+            f(x);
+        });
 
-        let disks = match mirror[0] {
-            VDev::Mirror { ref children, .. } => children,
-            _ => panic!("did not find mirror"),
-        };
+    }
 
-        let (whole_disk, state) = match disks[0] {
-            VDev::Disk {
-                whole_disk,
-                ref state,
-                ..
-            } => (whole_disk, state),
-            _ => panic!("did not find disk"),
-        };
+    #[test]
+    fn open_close_handle() {
+        Libzfs::new();
+    }
 
-        assert_eq!(whole_disk, Some(true));
+    #[test]
+    fn import_get_pool_len() {
+        test_pools(|xs| assert_eq!(xs.len(), 1));
+    }
 
-        assert_eq!(state, "ONLINE");
+    #[test]
+    fn get_pool_health() {
+        pool_by_name("test", |p| {
+            assert_eq!(p.health().unwrap(), CString::new("ONLINE").unwrap())
+        })
+    }
 
-        let datasets = test_pool.datasets().expect("could not fetch datasets");
+    #[test]
+    fn get_pool_state() {
+        pool_by_name("test", |p| {
+            assert_eq!(p.state_name(), CString::new("ACTIVE").unwrap())
+        })
+    }
 
-        let test_dataset = datasets
-            .iter()
-            .find(|x| x.name() == CString::new("test/ds").unwrap())
-            .expect("did not find test dataset");
+    #[test]
+    fn get_pool_size() {
+        pool_by_name("test", |p| assert_eq!(p.size(), 83886080))
+    }
 
-        assert_eq!(
-            test_dataset.zfs_type_name(),
-            CString::new("filesystem").unwrap()
-        );
+    #[test]
+    fn get_pool_read_only() {
+        pool_by_name("test", |p| assert_eq!(p.read_only(), false))
+    }
 
-        z.export_all(&imported_pools).unwrap();
+    #[test]
+    fn get_pool_hostname() {
+        pool_by_name("test", |p| {
+            assert_eq!(
+                p.hostname().unwrap(),
+                CString::new("localhost.localdomain").unwrap()
+            )
+        })
+    }
+
+    #[test]
+    fn get_pool_hostid() {
+        pool_by_name("test", |p| assert!(p.hostid().is_ok()))
+    }
+
+    #[test]
+    fn datasets() {
+        pool_by_name("test", |p| {
+            let datasets = p.datasets().expect("could not fetch datasets");
+
+            let test_dataset = datasets
+                .iter()
+                .find(|x| x.name() == CString::new("test/ds").unwrap())
+                .expect("did not find test dataset");
+
+            assert_eq!(
+                test_dataset.zfs_type_name(),
+                CString::new("filesystem").unwrap()
+            );
+        })
+    }
+
+    #[test]
+    fn test_vdev_tree() {
+        pool_by_name("test", |p| {
+            let (mirror, cache_vdevs, spare_vdevs) = match p.vdev_tree().unwrap() {
+                VDev::Root {
+                    children,
+                    cache,
+                    spares,
+                } => (children, cache, spares),
+                _ => panic!("did not find root device"),
+            };
+
+            let mirror_vdevs = match mirror[0] {
+                VDev::Mirror { ref children, .. } => children,
+                _ => panic!("did not find mirror"),
+            };
+
+            match mirror_vdevs[0] {
+                VDev::Disk {
+                    ref guid,
+                    ref state,
+                    ref path,
+                    ref dev_id,
+                    ref phys_path,
+                    whole_disk,
+                    is_log,
+                } => {
+                    assert!(guid.is_some());
+                    assert_eq!(state, "ONLINE");
+                    assert_eq!(path, "/dev/sdb1");
+                    assert!(dev_id.is_some());
+                    assert!(phys_path.is_some());
+                    assert_eq!(whole_disk, Some(true));
+                    assert!(is_log.is_none());
+                }
+                _ => panic!("did not find disk"),
+            };
+
+            match mirror_vdevs[1] {
+                VDev::Disk {
+                    ref guid,
+                    ref state,
+                    ref path,
+                    ref dev_id,
+                    ref phys_path,
+                    whole_disk,
+                    is_log,
+                } => {
+                    assert!(guid.is_some());
+                    assert_eq!(state, "ONLINE");
+                    assert_eq!(path, "/dev/sdc1");
+                    assert!(dev_id.is_some());
+                    assert!(phys_path.is_some());
+                    assert_eq!(whole_disk, Some(true));
+                    assert!(is_log.is_none());
+                }
+                _ => panic!("did not find disk"),
+            };
+
+            match cache_vdevs[0] {
+                VDev::Disk {
+                    ref guid,
+                    ref state,
+                    ref path,
+                    ref dev_id,
+                    ref phys_path,
+                    whole_disk,
+                    is_log,
+                } => {
+                    assert!(guid.is_some());
+                    assert_eq!(state, "ONLINE");
+                    assert_eq!(path, "/dev/sdd1");
+                    assert!(dev_id.is_some());
+                    assert!(phys_path.is_some());
+                    assert_eq!(whole_disk, Some(true));
+                    assert!(is_log.is_none());
+                }
+                _ => panic!("did not find disk"),
+            };
+
+            match spare_vdevs[0] {
+                VDev::Disk {
+                    ref guid,
+                    ref state,
+                    ref path,
+                    ref dev_id,
+                    ref phys_path,
+                    whole_disk,
+                    is_log,
+                } => {
+                    assert!(guid.is_some());
+                    assert_eq!(state, "ONLINE");
+                    assert_eq!(path, "/dev/sde1");
+                    assert!(dev_id.is_some());
+                    assert!(phys_path.is_some());
+                    assert_eq!(whole_disk, Some(true));
+                    assert!(is_log.is_none());
+                }
+                _ => panic!("did not find disk"),
+            };
+
+            match spare_vdevs[1] {
+                VDev::Disk {
+                    ref guid,
+                    ref state,
+                    ref path,
+                    ref dev_id,
+                    ref phys_path,
+                    whole_disk,
+                    is_log,
+                } => {
+                    assert!(guid.is_some());
+                    assert_eq!(state, "ONLINE");
+                    assert_eq!(path, "/dev/sdf1");
+                    assert!(dev_id.is_some());
+                    assert!(phys_path.is_some());
+                    assert_eq!(whole_disk, Some(true));
+                    assert!(is_log.is_none());
+                }
+                _ => panic!("did not find disk"),
+            };
+        })
     }
 }
