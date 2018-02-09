@@ -25,6 +25,8 @@ fn main() {
         .whitelisted_var("ZPOOL_CONFIG_TYPE")
         .whitelisted_var("ZPOOL_CONFIG_VDEV_TREE")
         .whitelisted_var("ZPOOL_CONFIG_CHILDREN")
+        .whitelisted_var("ZPOOL_CONFIG_SPARES")
+        .whitelisted_var("ZPOOL_CONFIG_L2CACHE")
         .whitelisted_var("ZPOOL_CONFIG_PATH")
         .whitelisted_var("ZPOOL_CONFIG_PHYS_PATH")
         .whitelisted_var("ZPOOL_CONFIG_DEVID")

@@ -8,7 +8,7 @@ Vagrant.configure("2") do |config|
       vb.customize ["modifyvm", :id, "--memory", "512"]
       vb.name = "libzfs"
       
-      for i in 1..5 do
+      for i in 1..9 do
         disk = "./tmp/disk#{i}.vdi"
 
         unless File.exist?(disk)
@@ -33,7 +33,7 @@ Vagrant.configure("2") do |config|
         yum -y install clang-5.0.0 zfs libzfs2-devel --nogpgcheck
         modprobe zfs
         genhostid
-        zpool create test -o cachefile=none -o multihost=on /dev/sdb
+        zpool create test mirror sdb sdc cache sdd spare sde sdf
         zfs create test/ds
         zpool export test
         curl https://sh.rustup.rs -sSf > /home/vagrant/rustup.sh

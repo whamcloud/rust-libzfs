@@ -26,6 +26,14 @@ pub fn zpool_config_children() -> String {
     utf8_to_string(ZPOOL_CONFIG_CHILDREN)
 }
 
+pub fn zpool_config_spares() -> String {
+    utf8_to_string(ZPOOL_CONFIG_SPARES)
+}
+
+pub fn zpool_config_l2cache() -> String {
+    utf8_to_string(ZPOOL_CONFIG_L2CACHE)
+}
+
 pub fn zpool_config_path() -> String {
     utf8_to_string(ZPOOL_CONFIG_PATH)
 }
