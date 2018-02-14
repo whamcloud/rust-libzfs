@@ -13,9 +13,7 @@ jobs:
     - stage: test
       env: Type='virus scan'
       script:
-        - sudo apt-get install clamav -y
-        - sudo freshclam
-        - clamscan --quiet -r ./
+        - ./include/travis/virus-scan.sh
     - stage: test
       env: Type='mock build'
       language: node_js
@@ -67,16 +65,20 @@ jobs:
           - cd bin/Debug
           - dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k $NUGET_KEY
     - stage: deploy
-      env: Type='bintray master deploy'
-      if: branch = master AND env(TRAVIS_TAG) IS blank
-      language: node_js
-      node_js: 8
-      script:
-        - cd node-libzfs
-        - PACKAGE_VERSION=$(node -p -e "require('./package.json').version")
-        - RELEASE=$(git rev-list HEAD | wc -l)
-        - RPM_NAME=iml-node-libzfs-$PACKAGE_VERSION-$RELEASE.el7.centos.x86_64.rpm
-        - npm pack
-        - rename 's/^iml\-//' iml-node-libzfs-*.tgz
-        - npm run mock
-        - docker exec -ti mock bash -xec "curl -T /var/lib/mock/epel-7-x86_64/result/$RPM_NAME -u$BINTRAY_USER:$BINTRAY_KEY https://api.bintray.com/content/intel-hpdd/intelhpdd-build/iml-node-libzfs/$PACKAGE_VERSION/$RPM_NAME/?publish=1"
+      if: branch =~ ^v\d+\.\d+\.\d+-.+node-libzfs$
+      language: generic
+      env: Type='Copr deploy'
+      sudo: required
+      services:
+        - docker
+      before_deploy:
+        - docker pull centos:centos7
+        - openssl aes-256-cbc -K $encrypted_253525cedcf6_key -iv $encrypted_253525cedcf6_iv -in include/copr-mfl.enc -out include/copr-mfl -d
+        - curl -O https://raw.githubusercontent.com/m3t/travis_wait/master/travis_wait
+        - chmod 755 travis_wait
+      deploy:
+        skip_cleanup: true
+        provider: script
+        script: ./travis_wait "./include/travis/run_in_centos7_docker.sh include/travis/copr-deploy.sh"
+        on:
+          all_branches: true
