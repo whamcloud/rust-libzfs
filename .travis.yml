@@ -16,11 +16,10 @@ jobs:
         - ./include/travis/virus-scan.sh
     - stage: test
       env: Type='mock build'
-      language: generic
+      language: node_js
+      node_js: 8
       script:
         - cd node-libzfs
-        - docker exec -ti mock bash -c "yum install -y rpkg"
-        - docker exec -ti mock bash -c "/builddir/node-libzfs rpkg make-source"
         - npm run mock
     - stage: deploy
       env: Type='libzfs-sys'
