@@ -11,3 +11,5 @@ target
 /tmp
 /*.xml
 .idea/
+travis_env
+include/copr-mfl
