@@ -1,5 +1,7 @@
 # node-libzfs
 
+[![Build Status](https://copr.fedorainfracloud.org/coprs/managerforlustre/manager-for-lustre/package/iml-node-libzfs/status_image/last_build.png)](https://copr.fedorainfracloud.org/coprs/managerforlustre/manager-for-lustre/package/iml-node-libzfs/)
+
 Neon bindings to rust-libzfs
 
 Implements a binding layer from node to [rust-libzfs](https://github.com/intel-hpdd/rust-libzfs/tree/master/libzfs) via [neon](https://github.com/neon-bindings/neon).
