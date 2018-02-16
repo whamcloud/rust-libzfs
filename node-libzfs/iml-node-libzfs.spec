@@ -1,14 +1,14 @@
-%{?!package_release: %define package_release 1}
-
 %define base_name node-libzfs
 Name:       iml-%{base_name}
 Version:    0.1.13
-Release:    %{package_release}%{?dist}
+Release:    1%{?dist}
 Summary:    Implements a binding layer from node to rust-libzfs
 License:    MIT
 Group:      System Environment/Libraries
 URL:        https://github.com/intel-hpdd/rust-libzfs/tree/master/%{base_name}
-Source0:    http://registry.npmjs.org/@iml/%{base_name}/-/%{base_name}-%{version}.tgz
+# Forcing local source because rpkg in copr does not seem to have a way
+# to build source in the same way a package manager would.
+Source0:    %{name}-%{version}.tgz
 
 ExclusiveArch: %{nodejs_arches}
 
@@ -26,7 +26,7 @@ Requires: nodejs
 Implements a binding layer from node to rust-libzfs.
 
 %prep
-%setup -q -n package
+%setup
 npm i neon-cli@0.1.22
 %nodejs_fixdep -r neon-cli
 

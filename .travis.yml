@@ -20,8 +20,6 @@ jobs:
       node_js: 8
       script:
         - cd node-libzfs
-        - npm pack
-        - rename 's/^iml\-//' iml-node-libzfs-*.tgz
         - npm run mock
     - stage: deploy
       env: Type='libzfs-sys'
@@ -68,9 +66,6 @@ jobs:
       if: branch =~ ^v\d+\.\d+\.\d+-.+node-libzfs$
       language: generic
       env: Type='Copr deploy'
-      sudo: required
-      services:
-        - docker
       before_deploy:
         - docker pull centos:centos7
         - openssl aes-256-cbc -K $encrypted_253525cedcf6_key -iv $encrypted_253525cedcf6_iv -in include/copr-mfl.enc -out include/copr-mfl -d
@@ -79,6 +74,6 @@ jobs:
       deploy:
         skip_cleanup: true
         provider: script
-        script: ./travis_wait "./include/travis/run_in_centos7_docker.sh include/travis/copr-deploy.sh"
+        script: ./travis_wait "./include/travis/run_in_centos7_docker.sh ./include/travis/copr-deploy.sh"
         on:
           all_branches: true
