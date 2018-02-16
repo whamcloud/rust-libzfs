@@ -26,6 +26,7 @@ Requires: nodejs
 Implements a binding layer from node to rust-libzfs.
 
 %prep
+%setup
 npm i neon-cli@0.1.22
 %nodejs_fixdep -r neon-cli
 
