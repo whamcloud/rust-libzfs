@@ -1,4 +1,5 @@
 sudo: required
+language: generic
 services:
   - docker
 
@@ -21,18 +22,19 @@ jobs:
       script:
         - cd node-libzfs
         - npm run mock
+    - stage: test
+      env: Type='test Fable.Import.NodeLibzfs'
+      script:
+        - docker run -d -it --name libzfs-dotnet -v $(pwd):/rust-libzfs:rw intelhpdd/libzfs-dotnet
+        - docker exec -i libzfs-dotnet bash -c "cd /rust-libzfs/Fable.Import.NodeLibzfs && dotnet restore && npm i --ignore-scripts && dotnet fable npm-test"
     - stage: deploy
       env: Type='libzfs-sys'
-      language: rust
-      rust: stable
       if: branch =~ ^v.+libzfs-sys$
       script:
         - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw intelhpdd/libzfs
         - docker exec -i libzfs bash -c "cd /rust-libzfs/libzfs-sys && cargo package && cargo publish --token $CARGO_TOKEN"
     - stage: deploy
       env: Type='libzfs'
-      language: rust
-      rust: stable
       if: branch =~ ^v.+\dlibzfs$
       script:
         - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw intelhpdd/libzfs
@@ -64,7 +66,6 @@ jobs:
           - dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k $NUGET_KEY
     - stage: deploy
       if: branch =~ ^v\d+\.\d+\.\d+-.+node-libzfs$
-      language: generic
       env: Type='Copr deploy'
       before_deploy:
         - docker pull centos:centos7

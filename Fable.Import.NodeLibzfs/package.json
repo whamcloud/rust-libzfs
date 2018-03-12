@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "scripts": {
+    "test": "jest --projects test",
+    "coverage": "jest --coverage",
+    "test-watch": "jest --watchAll"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "jest": "^22.4.2",
+    "jest-fable-preprocessor": "^1.4.0",
+    "@iml/node-libzfs": "^0.1.13"
+  }
+}
