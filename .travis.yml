@@ -60,7 +60,7 @@ jobs:
       mono: latest
       if: branch =~ ^v.+fable-import-nodelibzfs$
       script:
-          - cd Fable.Import.NodeLibzfs
+          - cd Fable.Import.NodeLibzfs/fable
           - dotnet pack
           - cd bin/Debug
           - dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k $NUGET_KEY
