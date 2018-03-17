@@ -14,7 +14,6 @@ fn main() {
     pkg_config::Config::new().probe("libzfs").unwrap();
     println!("cargo:rustc-link-lib=zpool");
 
-
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
         .constified_enum("boolean")
@@ -91,7 +90,6 @@ fn main() {
         .clang_arg("-I/usr/src/zfs-0.7.6/include/")
         .generate()
         .expect("Unable to generate bindings");
-
 
     // Write the bindings to the $OUT_DIR/bindings.rs file.
     let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());

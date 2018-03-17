@@ -1,13 +1,36 @@
-extern crate nvpair_sys as nv_sys;
 extern crate cstr_argument;
+extern crate nvpair_sys as nv_sys;
 
 use self::cstr_argument::CStrArgument;
 use std::mem;
 use std::io;
 use std::ptr;
 use std::ffi;
-use std::os::raw::{c_int, c_uint};
-pub use foreign_types::{Opaque, ForeignTypeRef, ForeignType};
+use std::os::raw::{c_double, c_int, c_uint};
+use std::ffi::CStr;
+pub use foreign_types::{ForeignType, ForeignTypeRef, Opaque};
+
+#[derive(Debug)]
+pub enum NvData {
+    Bool,
+    BoolV(bool),
+    Byte(u8),
+    Int8(i8),
+    Uint8(u8),
+    Int16(i16),
+    Uint16(u16),
+    Int32(i32),
+    Uint32(u32),
+    Int64(i64),
+    Uint64(u64),
+    Uint64Array(Vec<u64>),
+    String(ffi::CString),
+    NvListRef(NvList),
+    NvListArray(Vec<NvList>),
+    Double(c_double),
+    // TODO: arrays
+    // hrtime
+}
 
 pub trait NvEncode {
     fn insert<S: CStrArgument>(&self, S, &mut NvListRef) -> io::Result<()>;
@@ -99,6 +122,7 @@ foreign_type! {
     type CType = nv_sys::nvlist;
     fn drop = nv_sys::nvlist_free;
     /// An `NvList`
+    #[derive(Debug)]
     pub struct NvList;
     /// A borrowed `NvList`
     pub struct NvListRef;
@@ -211,7 +235,7 @@ impl NvListRef {
         v != nv_sys::boolean::B_FALSE
     }
 
-    /* 
+    /*
     // not allowed because `pair` is borrowed from `self`. Need to fiddle around so that we can
     // check:
     //  - `pair` is from `self`
@@ -290,7 +314,6 @@ impl NvListRef {
             Ok(n)
         }
     }
-
 
     pub fn lookup_nv_list_array<S: CStrArgument>(&self, name: S) -> io::Result<Vec<NvList>> {
         let name = name.into_cstr();
@@ -393,6 +416,10 @@ impl NvPair {
         unsafe { ffi::CStr::from_ptr(nv_sys::nvpair_name(self.as_ptr())) }
     }
 
+    pub fn pair_type(&self) -> nv_sys::data_type_t::Type {
+        unsafe { nv_sys::nvpair_type(self.as_ptr()) }
+    }
+
     pub fn value_nv_list(&self) -> io::Result<NvList> {
         let mut nvl_target = ptr::null_mut();
 
@@ -404,6 +431,52 @@ impl NvPair {
             } else {
                 Err(io::Error::from_raw_os_error(code))
             }
+        }
+    }
+
+    pub fn value(&self) -> io::Result<NvData> {
+        let x = self.pair_type();
+
+        match x {
+            nv_sys::data_type_t::DATA_TYPE_UNKNOWN => {
+                Err(io::Error::new(io::ErrorKind::Other, "Unkown NvPair type"))
+            }
+            nv_sys::data_type_t::DATA_TYPE_BOOLEAN => Ok(NvData::Bool),
+            nv_sys::data_type_t::DATA_TYPE_UINT64 => {
+                let mut x: u64;
+                let code = unsafe {
+                    x = mem::uninitialized();
+
+                    nv_sys::nvpair_value_uint64(self.as_ptr(), &mut x)
+                };
+
+                if code == 0 {
+                    Ok(NvData::Uint64(x))
+                } else {
+                    Err(io::Error::from_raw_os_error(code))
+                }
+            }
+            nv_sys::data_type_t::DATA_TYPE_STRING => unsafe {
+                let p = mem::uninitialized();
+
+                let code = nv_sys::nvpair_value_string(self.as_ptr(), p);
+
+                if code == 0 {
+                    let s = CStr::from_ptr(*p).to_owned();
+                    Ok(NvData::String(s))
+                } else {
+                    Err(io::Error::from_raw_os_error(code))
+                }
+            },
+            nv_sys::data_type_t::DATA_TYPE_NVLIST => {
+                let r = self.value_nv_list()?;
+
+                Ok(NvData::NvListRef(r))
+            }
+            x => Err(io::Error::new(
+                io::ErrorKind::Other,
+                format!("Missing NvData conversion for {:?}", x),
+            )),
         }
     }
 }
