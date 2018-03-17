@@ -6,6 +6,7 @@ extern crate libzfs_sys as sys;
 // extern crate nvpair;
 use std::os::raw::{c_int, c_void};
 use std::ffi::{CStr, CString, IntoStringError};
+use std::str::Utf8Error;
 use std::{error, fmt, ptr, result, str};
 use std::io::{Error, ErrorKind};
 use nvpair::ForeignType;
@@ -21,6 +22,7 @@ extern crate serde_derive;
 pub enum LibZfsError {
     Io(::std::io::Error),
     IntoString(IntoStringError),
+    Utf8(Utf8Error),
 }
 
 impl fmt::Display for LibZfsError {
@@ -28,6 +30,7 @@ impl fmt::Display for LibZfsError {
         match *self {
             LibZfsError::Io(ref err) => write!(f, "{}", err),
             LibZfsError::IntoString(ref err) => write!(f, "{}", err),
+            LibZfsError::Utf8(ref err) => write!(f, "{}", err),
         }
     }
 }
@@ -37,6 +40,7 @@ impl error::Error for LibZfsError {
         match *self {
             LibZfsError::Io(ref err) => err.description(),
             LibZfsError::IntoString(ref err) => err.description(),
+            LibZfsError::Utf8(ref err) => err.description(),
         }
     }
 
@@ -44,6 +48,7 @@ impl error::Error for LibZfsError {
         match *self {
             LibZfsError::Io(ref err) => Some(err),
             LibZfsError::IntoString(ref err) => Some(err),
+            LibZfsError::Utf8(ref err) => Some(err),
         }
     }
 }
@@ -60,6 +65,12 @@ impl From<IntoStringError> for LibZfsError {
     }
 }
 
+impl From<Utf8Error> for LibZfsError {
+    fn from(err: Utf8Error) -> Self {
+        LibZfsError::Utf8(err)
+    }
+}
+
 pub type Result<T> = result::Result<T, LibZfsError>;
 
 /// Represents vdevs
@@ -70,8 +81,12 @@ pub enum VDev {
         children: Vec<VDev>,
         is_log: Option<bool>,
     },
-    RaidZ { children: Vec<VDev> },
-    Replacing { children: Vec<VDev> },
+    RaidZ {
+        children: Vec<VDev>,
+    },
+    Replacing {
+        children: Vec<VDev>,
+    },
     Root {
         children: Vec<VDev>,
         spares: Vec<VDev>,
@@ -116,6 +131,31 @@ impl Zfs {
             nvpair::NvListRef::from_mut_ptr(x)
         }
     }
+    pub fn nv_props(&self) -> Result<Vec<(String, String)>> {
+        fn string_or_unit64(name: String, x: nvpair::NvData) -> Result<(String, String)> {
+            match x {
+                nvpair::NvData::Uint64(x) => Ok((name, x.to_string())),
+                nvpair::NvData::String(x) => Ok((name, x.into_string()?)),
+                x => Err(LibZfsError::Io(Error::new(
+                    ErrorKind::Other,
+                    format!("unhandled prop conversion for {:?}: {:?}", name, x),
+                ))),
+            }
+        }
+
+        fn nv_tuple(nv: &nvpair::NvPair) -> Result<(String, String)> {
+            match nv.value()? {
+                nvpair::NvData::NvListRef(x) => {
+                    let y = x.lookup(sys::zfs_value())?.value()?;
+
+                    string_or_unit64(nv.name().to_str()?.to_string(), y)
+                }
+                x => string_or_unit64(nv.name().to_str()?.to_string(), x),
+            }
+        }
+
+        self.props().iter().map(nv_tuple).collect::<_>()
+    }
     pub fn zfs_type(&self) -> sys::zfs_type_t {
         unsafe { sys::zfs_get_type(self.raw) }
     }
@@ -130,9 +170,7 @@ impl Zfs {
         let props: Result<String> = self.props()
             .lookup_nv_list(name)
             .map_err(LibZfsError::from)
-            .and_then(|x| {
-                x.lookup_string(sys::zfs_value()).map_err(LibZfsError::from)
-            })
+            .and_then(|x| x.lookup_string(sys::zfs_value()).map_err(LibZfsError::from))
             .and_then(|x| x.into_string().map_err(LibZfsError::from));
 
         props.ok()
@@ -141,9 +179,7 @@ impl Zfs {
         let props: Result<u64> = self.props()
             .lookup_nv_list(name)
             .map_err(LibZfsError::from)
-            .and_then(|x| {
-                x.lookup_uint64(sys::zfs_value()).map_err(LibZfsError::from)
-            });
+            .and_then(|x| x.lookup_uint64(sys::zfs_value()).map_err(LibZfsError::from));
 
         props.ok()
     }
@@ -288,7 +324,6 @@ impl Zpool {
         }
     }
     pub fn export(&self) -> Result<()> {
-
         let code = unsafe { sys::zpool_export(self.raw, sys::boolean_B_FALSE, ptr::null_mut()) };
 
         match code {
@@ -360,18 +395,12 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
 
         let state = unsafe {
             let s = sys::zpool_state_to_name(
-                sys::to_vdev_state(vdev_stats.vs_state as u32).ok_or(
-                    Error::new(
-                        ErrorKind::NotFound,
-                        "vs_state not in enum range",
-                    ),
-                )?,
-                sys::to_vdev_aux(vdev_stats.vs_aux as u32).ok_or(
-                    Error::new(
-                        ErrorKind::NotFound,
-                        "vs_aux not in enum range",
-                    ),
-                )?,
+                sys::to_vdev_state(vdev_stats.vs_state as u32).ok_or(Error::new(
+                    ErrorKind::NotFound,
+                    "vs_state not in enum range",
+                ))?,
+                sys::to_vdev_aux(vdev_stats.vs_aux as u32)
+                    .ok_or(Error::new(ErrorKind::NotFound, "vs_aux not in enum range"))?,
             );
 
             CStr::from_ptr(s)
@@ -440,9 +469,10 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
                 cache,
             })
         }
-        _ => Err(LibZfsError::Io(
-            Error::new(ErrorKind::NotFound, "hit unknown vdev type"),
-        )),
+        _ => Err(LibZfsError::Io(Error::new(
+            ErrorKind::NotFound,
+            "hit unknown vdev type",
+        ))),
     }
 }
 
@@ -452,7 +482,9 @@ pub struct Libzfs {
 
 impl Libzfs {
     pub fn new() -> Libzfs {
-        Libzfs { raw: unsafe { sys::libzfs_init() } }
+        Libzfs {
+            raw: unsafe { sys::libzfs_init() },
+        }
     }
     pub fn pool_by_name(&mut self, name: &str) -> Option<Zpool> {
         unsafe {
@@ -559,15 +591,15 @@ mod tests {
 
         let pools_to_import = z.find_importable_pools();
 
-        z.import_all(&pools_to_import).expect(
-            "could not import pools",
-        );
+        z.import_all(&pools_to_import)
+            .expect("could not import pools");
 
-        let pools = z.get_imported_pools().expect(
-            "could not get imported pools",
-        );
+        let pools = z.get_imported_pools()
+            .expect("could not get imported pools");
 
-        let result = panic::catch_unwind(|| { f(&pools); });
+        let result = panic::catch_unwind(|| {
+            f(&pools);
+        });
 
         z.export_all(&pools).unwrap();
 
@@ -578,16 +610,13 @@ mod tests {
     where
         F: std::panic::RefUnwindSafe,
     {
-
         test_pools(|xs| {
-
             let x = xs.iter()
                 .find(|x| x.name() == CString::new(name).unwrap())
                 .expect("did not find test pool");
 
             f(x);
         });
-
     }
 
     #[test]
@@ -637,6 +666,56 @@ mod tests {
     #[test]
     fn get_pool_hostid() {
         pool_by_name("test", |p| assert!(p.hostid().is_ok()))
+    }
+
+    #[test]
+    fn get_dataset_props() {
+        pool_by_name("test", |p| {
+            let datasets = p.datasets().expect("could not fetch datasets");
+
+            let props: Vec<(String, String)> = datasets
+                .into_iter()
+                .find(|x| x.name() == CString::new("test/ds").unwrap())
+                .expect("did not find test dataset")
+                .nv_props()
+                .unwrap();
+
+            let exp: Vec<(String, String)> = vec![
+                ("lustre:mgsnode", "10.14.82.0@tcp:10.14.82.1@tcp"),
+                ("refcompressratio", "100"),
+                ("logicalreferenced", "12288"),
+                ("used", "24576"),
+                ("quota", "0"),
+                ("reservation", "0"),
+                ("compressratio", "100"),
+                ("logicalused", "12288"),
+                ("usedbysnapshots", "0"),
+                ("usedbydataset", "24576"),
+                ("usedbyrefreservation", "0"),
+                ("usedbychildren", "0"),
+                ("referenced", "24576"),
+                ("createtxg", "6"),
+                ("refquota", "0"),
+                ("refreservation", "0"),
+                ("unique", "24576"),
+                ("objsetid", "75"),
+                ("userrefs", "0"),
+                ("defer_destroy", "0"),
+                ("written", "24576"),
+                ("type", "2"),
+                ("useraccounting", "1"),
+            ].into_iter()
+                .map(|(x, y)| -> (String, String) { (x.to_string(), y.to_string()) })
+                .collect::<Vec<(String, String)>>();
+
+            assert_eq!(
+                props
+                    .into_iter()
+                    .filter(|&(ref x, _)| x != "available" && x != "creation" && x != "guid")
+                    .collect::<Vec<(String, String)>>(),
+                exp
+            );
+        })
     }
 
     #[test]
