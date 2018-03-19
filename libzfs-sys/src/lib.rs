@@ -5,10 +5,29 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
+#![crate_name = "libzfs_sys"]
+
+//! libzfs_sys — Rust bindings to libzfs2.
+//!
+//! ## Overview
+//!
+//! Bindings created using [rust bindgen](https://github.com/rust-lang-nursery/rust-bindgen) and written
+//! to the src dir. To rebuild bindings, delete `src/bindings.rs` and run `cargo build`.
+//!
+//! ## ZFS version
+//! These bindings were compiled against ZFS 0.7.6. As `libzfs` is not a stable interface,
+//! they should only be used against this version.
+//!
+//! ## OS
+//!
+//! These bindings were compiled on Centos 7.4.x. They are likely to work against other
+//! OS, but make sure to test first.
+//!
+#![doc(html_root_url = "https://docs.rs/libzfs_sys/0.5.2/")]
 
 extern crate nvpair_sys;
 use nvpair_sys::*;
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+include!("bindings.rs");
 
 fn utf8_to_string(bytes: &[u8]) -> String {
     String::from_utf8(bytes.to_vec()).unwrap()
@@ -78,12 +97,14 @@ pub fn zfs_type_dataset() -> zfs_type_t {
     zfs_type_t_ZFS_TYPE_FILESYSTEM | zfs_type_t_ZFS_TYPE_VOLUME | zfs_type_t_ZFS_TYPE_SNAPSHOT
 }
 
+/// Converts a `Vec<u64>` to `vdev_stat_t`
 pub fn to_vdev_stat(mut xs: Vec<u64>) -> vdev_stat_t {
     xs.shrink_to_fit();
 
     unsafe { std::ptr::read(xs.as_ptr() as *const _) }
 }
 
+/// Converts a `u32` to `Option<vdev_state_t>`
 pub fn to_vdev_state(n: u32) -> Option<vdev_state_t> {
     if n <= 7 {
         Some(unsafe { std::mem::transmute(n) })
@@ -92,6 +113,7 @@ pub fn to_vdev_state(n: u32) -> Option<vdev_state_t> {
     }
 }
 
+/// Converts a `u32` to `Option<vdev_aux_t>`
 pub fn to_vdev_aux(n: u32) -> Option<vdev_aux_t> {
     if n <= 18 {
         Some(unsafe { std::mem::transmute(n) })
