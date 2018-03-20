@@ -6,14 +6,14 @@ extern crate bindgen;
 extern crate pkg_config;
 
 use std::env;
-use std::path::PathBuf;
 
 fn main() {
+    let out_file = env::current_dir().unwrap().join("src").join("bindings.rs");
+
     env::set_var("LIBCLANG_PATH", "/opt/llvm-5.0.0/lib64/");
 
     pkg_config::Config::new().probe("libzfs").unwrap();
     println!("cargo:rustc-link-lib=zpool");
-
 
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
@@ -87,16 +87,13 @@ fn main() {
         .whitelisted_function("libzfs_error_description")
         .whitelisted_function("zfs_prop_get")
         .clang_arg("-I/usr/lib/gcc/x86_64-redhat-linux/4.8.2/include/")
-        .clang_arg("-I/usr/src/zfs-0.7.6/lib/libspl/include/")
-        .clang_arg("-I/usr/src/zfs-0.7.6/include/")
+        .clang_arg("-I/usr/src/zfs-0.7.7/lib/libspl/include/")
+        .clang_arg("-I/usr/src/zfs-0.7.7/include/")
         .generate()
         .expect("Unable to generate bindings");
 
-
-    // Write the bindings to the $OUT_DIR/bindings.rs file.
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-
+    // Write bindings to src.
     bindings
-        .write_to_file(out_path.join("bindings.rs"))
+        .write_to_file(out_file)
         .expect("Couldn't write bindings!");
 }
