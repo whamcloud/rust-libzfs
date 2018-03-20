@@ -7,7 +7,7 @@ Vagrant.configure("2") do |config|
     config.vm.provider "virtualbox" do |vb|
       vb.customize ["modifyvm", :id, "--memory", "512"]
       vb.name = "libzfs"
-      
+
       for i in 1..9 do
         disk = "./tmp/disk#{i}.vdi"
 
@@ -24,9 +24,9 @@ Vagrant.configure("2") do |config|
         vb.customize ['setextradata', :id, "VBoxInternal/Devices/ahci/0/Config/Port#{i}/SerialNumber", "081118FC1221NCJ6G8G#{i}"]
       end
     end
-  
+
     config.vm.boot_timeout = 600
-  
+
     config.vm.provision "shell", inline: <<-SHELL
         yum -y install yum-plugin-copr epel-release http://download.zfsonlinux.org/epel/zfs-release.el7_4.noarch.rpm
         yum -y copr enable alonid/llvm-5.0.0
@@ -35,6 +35,7 @@ Vagrant.configure("2") do |config|
         genhostid
         zpool create test mirror sdb sdc cache sdd spare sde sdf
         zfs create test/ds
+        zfs set lustre:mgsnode="10.14.82.0@tcp:10.14.82.1@tcp" test/ds
         zpool export test
         curl https://sh.rustup.rs -sSf > /home/vagrant/rustup.sh
         chmod 755 rustup.sh
@@ -42,4 +43,4 @@ Vagrant.configure("2") do |config|
         source $HOME/.cargo/env
     SHELL
   end
-  
+
