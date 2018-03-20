@@ -12,7 +12,7 @@
 //! ## Overview
 //!
 //! Bindings created using [rust bindgen](https://github.com/rust-lang-nursery/rust-bindgen) and written
-//! to the src dir. To rebuild bindings, delete `src/bindings.rs` and run `cargo build`.
+//! to the src dir. To rebuild bindings run `cargo build`.
 //!
 //! ## ZFS version
 //! These bindings were compiled against ZFS 0.7.6. As `libzfs` is not a stable interface,

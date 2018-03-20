@@ -5,7 +5,7 @@ Bindings to libzfs 0.7.6. Uses [bindgen](https://github.com/rust-lang-nursery/ru
 ## Overview
 
 Bindings created using [rust bindgen](https://github.com/rust-lang-nursery/rust-bindgen) and written
-to the src dir. To rebuild bindings, delete `src/bindings.rs` and run `cargo build`.
+to the src dir. To rebuild bindings run `cargo build`.
 
 ## ZFS version
 
