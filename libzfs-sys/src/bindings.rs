@@ -31,10 +31,12 @@ pub const VDEV_TYPE_LOG: &'static [u8; 4usize] = b"log\x00";
 pub const VDEV_TYPE_L2CACHE: &'static [u8; 8usize] = b"l2cache\x00";
 pub const ZFS_MAXPROPLEN: ::std::os::raw::c_uint = 4096;
 pub const ZPOOL_MAXPROPLEN: ::std::os::raw::c_uint = 4096;
-pub const boolean_B_FALSE: boolean = 0;
-pub const boolean_B_TRUE: boolean = 1;
-pub type boolean = ::std::os::raw::c_uint;
-pub use self::boolean as boolean_t;
+pub mod boolean {
+    pub type Type = ::std::os::raw::c_uint;
+    pub const B_FALSE: Type = 0;
+    pub const B_TRUE: Type = 1;
+}
+pub use self::boolean::Type as boolean_t;
 pub type longlong_t = ::std::os::raw::c_longlong;
 pub type diskaddr_t = longlong_t;
 pub type hrtime_t = ::std::os::raw::c_longlong;

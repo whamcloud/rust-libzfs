@@ -12,9 +12,9 @@ extern crate serde_derive;
 
 use std::ffi::CString;
 use neon::vm::{Call, JsResult, Throw};
-use neon::js::{JsNull, JsString, JsNumber, JsValue};
+use neon::js::{JsNull, JsNumber, JsString, JsValue};
 use neon::js::error::{JsError, Kind};
-use libzfs::{Zfs, Libzfs, VDev, Zpool};
+use libzfs::{Libzfs, VDev, Zfs, Zpool};
 
 #[derive(Serialize, Debug, Deserialize)]
 struct Pool {
@@ -45,9 +45,7 @@ fn convert_to_js_dataset(x: &Zfs) -> Result<JsDataset, Throw> {
 fn c_string_to_string(x: CString) -> Result<String, Throw> {
     let s = x.into_string();
 
-    s.or_else(|_| {
-        JsError::throw(Kind::SyntaxError, "Could not convert CString into String.")
-    })
+    s.or_else(|_| JsError::throw(Kind::SyntaxError, "Could not convert CString into String."))
 }
 
 fn convert_to_js_pool(p: &Zpool) -> Result<Pool, Throw> {
@@ -57,16 +55,13 @@ fn convert_to_js_pool(p: &Zpool) -> Result<Pool, Throw> {
         .map(|x| convert_to_js_dataset(x))
         .collect::<Result<Vec<JsDataset>, Throw>>()?;
 
-
-    let hostname = p.hostname().or_else(|_| {
-        JsError::throw(Kind::Error, "Could not get hostname")
-    })?;
+    let hostname = p.hostname()
+        .or_else(|_| JsError::throw(Kind::Error, "Could not get hostname"))?;
 
     let hostid = p.hostid().ok();
 
-    let health = p.health().or_else(|_| {
-        JsError::throw(Kind::Error, "Could not get health")
-    })?;
+    let health = p.health()
+        .or_else(|_| JsError::throw(Kind::Error, "Could not get health"))?;
 
     Ok(Pool {
         name: c_string_to_string(p.name())?,
@@ -76,9 +71,8 @@ fn convert_to_js_pool(p: &Zpool) -> Result<Pool, Throw> {
         hostid,
         state: c_string_to_string(p.state_name())?,
         size: p.size(),
-        vdev: p.vdev_tree().or_else(|_| {
-            JsError::throw(Kind::Error, "Could not enumerate vdev tree")
-        })?,
+        vdev: p.vdev_tree()
+            .or_else(|_| JsError::throw(Kind::Error, "Could not enumerate vdev tree"))?,
         datasets: xs,
     })
 }
@@ -97,9 +91,9 @@ fn get_dataset_string_prop(call: Call) -> JsResult<JsValue> {
         .check::<JsString>()?
         .value();
 
-    let x: Option<String> = libzfs.dataset_by_name(&ds_name).and_then(|x| {
-        x.lookup_string_prop(&prop_name)
-    });
+    let x: Option<String> = libzfs
+        .dataset_by_name(&ds_name)
+        .and_then(|x| x.lookup_string_prop(&prop_name));
 
     match x {
         Some(y) => Ok(JsString::new(scope, &y).unwrap().upcast()),
@@ -121,9 +115,9 @@ fn get_dataset_uint64_prop(call: Call) -> JsResult<JsValue> {
         .check::<JsString>()?
         .value();
 
-    let x: Option<u64> = libzfs.dataset_by_name(&ds_name).and_then(|x| {
-        x.lookup_uint64_prop(&prop_name)
-    });
+    let x: Option<u64> = libzfs
+        .dataset_by_name(&ds_name)
+        .and_then(|x| x.lookup_uint64_prop(&prop_name));
 
     match x {
         Some(y) => Ok(JsNumber::new(scope, y as f64).upcast()),
@@ -146,13 +140,12 @@ fn get_pool_by_name(call: Call) -> JsResult<JsValue> {
         Some(x) => {
             let value = convert_to_js_pool(&x)?;
 
-            let js_value = neon_serde::to_value(&value, scope)?;
+            let js_value = neon_serde::to_value(scope, &value)?;
 
             Ok(js_value)
         }
         None => Ok(JsNull::new().upcast()),
     }
-
 }
 
 fn get_imported_pools(call: Call) -> JsResult<JsValue> {
@@ -165,7 +158,7 @@ fn get_imported_pools(call: Call) -> JsResult<JsValue> {
         .map(convert_to_js_pool)
         .collect::<Result<Vec<Pool>, Throw>>()?;
 
-    let arr = neon_serde::to_value(&pools, scope)?;
+    let arr = neon_serde::to_value(scope, &pools)?;
 
     Ok(arr)
 }

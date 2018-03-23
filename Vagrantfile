@@ -41,6 +41,7 @@ Vagrant.configure("2") do |config|
         chmod 755 rustup.sh
         ./rustup.sh -y
         source $HOME/.cargo/env
+        rustup component add rustfmt-preview
     SHELL
   end
 

@@ -306,7 +306,7 @@ dependencies = [
 
 [[package]]
 name = "neon-serde"
-version = "0.0.1"
+version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "cast 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -322,7 +322,7 @@ dependencies = [
  "libzfs 0.6.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "neon 0.1.22 (registry+https://github.com/rust-lang/crates.io-index)",
  "neon-build 0.1.22 (registry+https://github.com/rust-lang/crates.io-index)",
- "neon-serde 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "neon-serde 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.23 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.23 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -643,7 +643,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum neon 0.1.22 (registry+https://github.com/rust-lang/crates.io-index)" = "6f6078a0767408131206f802cb4ee2b1d78a035f23c209c3c0cb1dbe258a8737"
 "checksum neon-build 0.1.22 (registry+https://github.com/rust-lang/crates.io-index)" = "0220c1150ca0ac00df8fc1001dde699cf17762f208f43c497d90e91c910c0a17"
 "checksum neon-runtime 0.1.22 (registry+https://github.com/rust-lang/crates.io-index)" = "9a53b08f4dfc0ebc9ecb8bd8a02ace763e833d657f03614293254420a413c036"
-"checksum neon-serde 0.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "703b17ec4b5da3ffb6fbf85337df5c044ef4226beb9ac797ecfbed0e8101d8f6"
+"checksum neon-serde 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)" = "03eb25ea2c60da2b6331b9c4b0eb55ab565b1552721b99674a382514a754af45"
 "checksum nom 3.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "05aec50c70fd288702bcd93284a8444607f3292dbdf2a30de5ea5dcdbe72287b"
 "checksum nvpair-sys 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5fc4cc751960db1094a7a732dd0706927aeae9194bf66c30fa227b70fc62b6c8"
 "checksum peeking_take_while 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "19b17cddbe7ec3f8bc800887bab5e717348c95ea2ca0b1bf0837fb964dc67099"

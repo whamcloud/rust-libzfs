@@ -14,7 +14,7 @@ neon-build = "0.1.22"
 
 [dependencies]
 neon = "0.1.22"
-neon-serde = "0.0.1"
+neon-serde = "0.0.3"
 serde = "1.0"
 serde_derive = "1.0"
 libzfs = "0.6.3"

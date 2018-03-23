@@ -17,7 +17,7 @@ fn main() {
 
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
-        .constified_enum("boolean")
+        .constified_enum_module("boolean")
         .whitelisted_var("vdev_stat_t")
         .whitelisted_type("vdev_stat_t")
         .whitelisted_var("ZPOOL_MAXPROPLEN")
