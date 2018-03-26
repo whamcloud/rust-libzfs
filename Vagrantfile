@@ -5,8 +5,9 @@ Vagrant.configure("2") do |config|
     config.vm.box = "manager-for-lustre/centos74-1708-base"
     config.vm.synced_folder ".", "/vagrant", type: "virtualbox"
     config.vm.provider "virtualbox" do |vb|
-      vb.customize ["modifyvm", :id, "--memory", "512"]
       vb.name = "libzfs"
+      vb.memory = 512
+      vb.cpus = 4
 
       for i in 1..9 do
         disk = "./tmp/disk#{i}.vdi"

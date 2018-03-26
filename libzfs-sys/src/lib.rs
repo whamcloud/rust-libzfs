@@ -23,7 +23,6 @@
 //! These bindings were compiled on Centos 7.4.x. They are likely to work against other
 //! OS, but make sure to test first.
 //!
-#![doc(html_root_url = "https://docs.rs/libzfs_sys/0.5.2/")]
 
 extern crate nvpair_sys;
 use nvpair_sys::*;
@@ -85,7 +84,7 @@ pub fn zpool_config_guid() -> String {
     utf8_to_string(ZPOOL_CONFIG_GUID)
 }
 
-pub fn zfs_value() -> String {
+pub fn zprop_value() -> String {
     utf8_to_string(ZPROP_VALUE)
 }
 
@@ -136,7 +135,7 @@ mod tests {
     use super::*;
     use std::ptr;
     use std::mem;
-    use std::os::raw::{c_char, c_int, c_uint, c_void};
+    use std::os::raw::{c_int, c_void};
     use std::ffi::{CStr, CString};
 
     fn create_libzfs_handle() -> *mut libzfs_handle_t {
@@ -145,6 +144,43 @@ mod tests {
 
     fn destroy_libzfs_handle(h: *mut libzfs_handle_t) {
         unsafe { libzfs_fini(h) }
+    }
+
+    fn imported_pools(h: *mut libzfs_handle_t) -> Vec<String> {
+        unsafe extern "C" fn callback(handle: *mut zpool_handle_t, state: *mut c_void) -> c_int {
+            let s = CStr::from_ptr((*handle).zpool_name.as_ptr());
+            let s = s.to_owned().into_string().unwrap();
+
+            let state = &mut *(state as *mut Vec<String>);
+            state.push(s);
+
+            zpool_close(handle);
+
+            0
+        }
+
+        let mut state: Vec<String> = Vec::new();
+        let state_ptr: *mut c_void = &mut state as *mut _ as *mut c_void;
+
+        let code = unsafe { zpool_iter(h, Some(callback), state_ptr) };
+
+        assert_eq!(code, 0);
+
+        state
+    }
+
+    fn open_pool_canfail(h: *mut libzfs_handle_t, name: &str) -> *mut zpool_handle_t {
+        unsafe {
+            let pool_name = CString::new(name).unwrap();
+
+            zpool_open_canfail(h, pool_name.as_ptr())
+        }
+    }
+
+    fn export_pool(zpool_h: *mut zpool_handle_t) {
+        let r = unsafe { zpool_export(zpool_h, boolean::B_FALSE, ptr::null_mut()) };
+
+        assert_eq!(r, 0);
     }
 
     #[test]
@@ -156,6 +192,14 @@ mod tests {
     #[test]
     fn pool_search_import_list_export() {
         let h = create_libzfs_handle();
+
+        // Pool may have been imported elsewhere.
+        // Make sure we export first.
+        if imported_pools(h).len() > 0 {
+            let zpool_h = open_pool_canfail(h, "test");
+
+            export_pool(zpool_h);
+        }
 
         let (nvl, nvp) = unsafe {
             thread_init();
@@ -195,31 +239,11 @@ mod tests {
 
         unsafe { nvlist_free(nvl) };
 
-        unsafe extern "C" fn callback(handle: *mut zpool_handle_t, state: *mut c_void) -> c_int {
-            let s = CStr::from_ptr((*handle).zpool_name.as_ptr());
-            let s = s.to_owned().into_string().unwrap();
+        let state = imported_pools(h);
 
-            let state = &mut *(state as *mut Vec<String>);
-            state.push(s);
-
-            zpool_close(handle);
-
-            0
-        }
-
-        let mut state: Vec<String> = Vec::new();
-        let state_ptr: *mut c_void = &mut state as *mut _ as *mut c_void;
-
-        let code = unsafe { zpool_iter(h, Some(callback), state_ptr) };
-
-        assert_eq!(code, 0);
         assert_eq!(state, vec!["test"]);
 
-        let zpool_h = unsafe {
-            let poolName = CString::new("test").unwrap();
-
-            zpool_open_canfail(h, poolName.as_ptr())
-        };
+        let zpool_h = open_pool_canfail(h, "test");
 
         let ds_h = unsafe {
             let dsName = CString::new("test/ds").unwrap();
@@ -241,30 +265,24 @@ mod tests {
 
             let mut pl_p = prop_list_ptr;
 
-            fn create_with_capacity(x: c_uint) -> *mut c_char {
-                let s = String::with_capacity(x as usize);
-                let c_string = CString::new(s).unwrap();
-                c_string.into_raw()
-            }
-
             while !pl_p.is_null() {
                 let zfs_prop = to_zfs_prop_t((*pl_p).pl_prop).unwrap();
 
                 if zfs_prop != zfs_prop_t::ZFS_PROP_BAD {
-                    let raw = create_with_capacity(ZFS_MAXPROPLEN);
-                    let source_raw = create_with_capacity(ZFS_MAX_DATASET_NAME_LEN);
-                    let source_t = ptr::null_mut();
+                    let raw = CString::new("0".repeat(319)).unwrap().into_raw();
 
                     let ret = zfs_prop_get(
                         ds_h,
                         zfs_prop,
                         raw,
-                        ZFS_MAXPROPLEN as usize,
-                        source_t,
-                        source_raw,
-                        ZFS_MAX_DATASET_NAME_LEN as usize,
+                        319,
+                        ptr::null_mut(),
+                        ptr::null_mut(),
+                        0,
                         boolean::B_TRUE,
                     );
+
+                    let _ = CString::from_raw(raw);
 
                     if ret != 0 {
                         pl_p = (*pl_p).pl_next;
@@ -292,7 +310,7 @@ mod tests {
             zprop_free_list(prop_list_ptr);
         };
 
-        unsafe { zpool_export(zpool_h, boolean::B_FALSE, ptr::null_mut()) };
+        export_pool(zpool_h);
 
         destroy_libzfs_handle(h);
     }
