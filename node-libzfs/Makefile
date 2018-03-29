@@ -1,5 +1,5 @@
 NAME            := iml-node-libzfs
-PACKAGE_VERSION := 0.1.13
+PACKAGE_VERSION := 0.1.15
 DIST_VERSION    := $(PACKAGE_VERSION)
 PACKAGE_RELEASE := 1
 
