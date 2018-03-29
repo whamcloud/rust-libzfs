@@ -29,7 +29,7 @@ pub enum VDev {
         cache: Vec<VDev>,
     },
     Disk {
-        guid: Option<String>,
+        guid: Option<u64>,
         state: String,
         path: String,
         dev_id: Option<String>,
@@ -38,7 +38,7 @@ pub enum VDev {
         is_log: Option<bool>,
     },
     File {
-        guid: Option<String>,
+        guid: Option<u64>,
         state: String,
         path: String,
         is_log: Option<bool>,
@@ -89,9 +89,8 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
             .ok()
     }
 
-    fn lookup_guid(tree: &nvpair::NvList) -> Option<String> {
+    fn lookup_guid(tree: &nvpair::NvList) -> Option<u64> {
         tree.lookup_uint64(sys::zpool_config_guid())
-            .map(|x| format!("{:#018X}", x))
             .ok()
     }
 

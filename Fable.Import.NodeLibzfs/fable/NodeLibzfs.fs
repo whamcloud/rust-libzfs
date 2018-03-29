@@ -5,6 +5,7 @@
 module rec libzfs
 open Fable.Core
 open Thot.Json
+open Libzfs
 
 let [<Import("default","@iml/node-libzfs")>] libzfs: Libzfs.IExports = jsNative
 
@@ -389,24 +390,144 @@ module Libzfs =
             value: string;
         }
 
-    type [<AllowNullLiteral>] Dataset =
-        abstract name: string with get, set
-        abstract kind: string with get, set
-        abstract props: ZProp array with get, set
+    module ZProp =
+        let encode
+            {
+                name = name;
+                value = value;
+            } =
+                Encode.object [
+                    ("name", Encode.string name);
+                    ("value", Encode.string value);
+                ]
 
-    type [<AllowNullLiteral>] Pool =
-        abstract name: string with get, set
-        abstract guid: int with get, set
-        abstract health: string with get, set
-        abstract hostname: string with get, set
-        abstract hostid: int option with get, set
-        abstract state: string with get, set
-        abstract readonly: bool with get, set
-        abstract size: int with get, set
-        abstract vdev: VDev with get, set
-        abstract props: ZProp array with get, set
-        abstract datasets: Dataset array with get, set
+        let decode =
+            Decode.map2
+                (fun name value ->
+                    {
+                        name = name;
+                        value = value;
+                    }
+                )
+                (Decode.field "name" Decode.string)
+                (Decode.field "value" Decode.string)
+
+    type Dataset =
+        {
+            name: string;
+            guid: string;
+            kind: string;
+            props: ZProp array;
+        }
+
+    module Dataset =
+        let encode
+            {
+              name = name;
+              guid = guid;
+              kind = kind;
+              props = props;
+            } =
+              Encode.object [
+                ("name", Encode.string name);
+                ("guid", Encode.string guid);
+                ("kind", Encode.string kind);
+                ("props", Encode.array (Array.map ZProp.encode props));
+              ]
+
+        let decode =
+            Decode.map4
+                (fun name guid kind props ->
+                    {
+                        name = name;
+                        guid = guid;
+                        kind = kind;
+                        props = props;
+                    }
+                )
+                (Decode.field "name" Decode.string)
+                (Decode.field "guid" Decode.string)
+                (Decode.field "kind" Decode.string)
+                (Decode.field "props" (Decode.array ZProp.decode))
+
+    type Pool =
+        {
+            name: string;
+            guid: string;
+            health: string;
+            hostname: string;
+            hostid: int option;
+            state: string;
+            readonly: bool;
+            size: int;
+            vdev: VDev;
+            props: ZProp array;
+            datasets: Dataset array;
+        }
+
+    module Pool =
+        let encode
+            {
+                name = name;
+                guid = guid;
+                health = health;
+                hostname = hostname;
+                hostid = hostid;
+                state = state;
+                readonly = readonly;
+                size = size;
+                vdev = vdev;
+                props = props;
+                datasets = datasets;
+            } =
+                Encode.object [
+                    ("name", Encode.string name);
+                    ("guid", Encode.string guid);
+                    ("health", Encode.string health);
+                    ("hostname", Encode.string hostname);
+                    ("hostid", Encode.option Encode.int hostid);
+                    ("state", Encode.string state);
+                    ("readonly", Encode.bool readonly);
+                    ("size", Encode.int size);
+                    ("vdev", VDev.Encode vdev);
+                    ("props", Encode.array (Array.map ZProp.encode props));
+                    ("datasets", Encode.array (Array.map Dataset.encode datasets));
+                ]
+
+        let decode =
+            Decode.decode
+                (fun name guid health hostname hostid
+                     state readonly size vdev props datasets ->
+                        {
+                            name = name;
+                            guid = guid;
+                            health = health;
+                            hostname = hostname;
+                            hostid = hostid;
+                            state = state;
+                            readonly = readonly;
+                            size = size;
+                            vdev = vdev;
+                            props = props;
+                            datasets = datasets;
+                        }
+                )
+                |> (Decode.required "name" Decode.string)
+                |> (Decode.required "guid" Decode.string)
+                |> (Decode.required "health" Decode.string)
+                |> (Decode.required "hostname" Decode.string)
+                |> (Decode.required "hostid" (Decode.option Decode.int))
+                |> (Decode.required "state" Decode.string)
+                |> (Decode.required "readonly" Decode.bool)
+                |> (Decode.required "size" Decode.int)
+                |> (Decode.required "vdev" VDev.Decode)
+                |> (Decode.required "props" (Decode.array ZProp.decode))
+                |> (Decode.required "datasets" (Decode.array Dataset.decode))
+
+        let decoder =
+            Decode.decodeString decode
 
     type [<AllowNullLiteral>] NodeLibzfs =
         abstract getPoolByName: name: string -> Pool option
+        abstract getDatasetByName: name: string -> Dataset option
         abstract getImportedPools: unit -> Pool list

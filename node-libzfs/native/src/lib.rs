@@ -19,7 +19,7 @@ use libzfs::{Libzfs, VDev, ZProp, Zfs, Zpool};
 #[derive(Serialize, Debug, Deserialize)]
 struct Pool {
     name: String,
-    guid: u64,
+    guid: String,
     health: String,
     hostname: String,
     hostid: Option<u64>,
@@ -34,16 +34,25 @@ struct Pool {
 #[derive(Serialize, Debug, Deserialize)]
 struct JsDataset {
     name: String,
+    guid: String,
     kind: String,
     props: Vec<ZProp>,
 }
 
 fn convert_to_js_dataset(x: &Zfs) -> Result<JsDataset, Throw> {
+    let props = x.props()
+        .or_else(|_| JsError::throw(Kind::Error, "Could not enumerate props"))?;
+
+    let guid = props.iter().find(|x| x.name == "guid").map_or_else(
+        || JsError::throw(Kind::Error, "Could not find ds guid"),
+        |x| Ok(x.value.clone()),
+    )?;
+
     Ok(JsDataset {
         name: c_string_to_string(x.name())?,
         kind: c_string_to_string(x.zfs_type_name())?,
-        props: x.props()
-            .or_else(|_| JsError::throw(Kind::Error, "Could not enumerate vdev tree"))?,
+        guid,
+        props,
     })
 }
 
@@ -71,7 +80,7 @@ fn convert_to_js_pool(p: &Zpool) -> Result<Pool, Throw> {
     Ok(Pool {
         name: c_string_to_string(p.name())?,
         health: c_string_to_string(health)?,
-        guid: p.guid(),
+        guid: p.guid().to_string(),
         hostname: c_string_to_string(hostname)?,
         hostid,
         state: c_string_to_string(p.state_name())?,
@@ -107,6 +116,29 @@ fn get_pool_by_name(call: Call) -> JsResult<JsValue> {
     }
 }
 
+fn get_dataset_by_name(call: Call) -> JsResult<JsValue> {
+    let scope = call.scope;
+    let mut libzfs = Libzfs::new();
+
+    let ds_name = call.arguments
+        .require(scope, 0)?
+        .check::<JsString>()?
+        .value();
+
+    let ds = libzfs.dataset_by_name(&ds_name);
+
+    match ds {
+        Some(x) => {
+            let value = convert_to_js_dataset(&x)?;
+
+            let js_value = neon_serde::to_value(scope, &value)?;
+
+            Ok(js_value)
+        }
+        None => Ok(JsNull::new().upcast()),
+    }
+}
+
 fn get_imported_pools(call: Call) -> JsResult<JsValue> {
     let scope = call.scope;
     let mut libzfs = Libzfs::new();
@@ -125,5 +157,6 @@ fn get_imported_pools(call: Call) -> JsResult<JsValue> {
 register_module!(m, {
     m.export("getImportedPools", get_imported_pools)?;
     m.export("getPoolByName", get_pool_by_name)?;
+    m.export("getDatasetByName", get_dataset_by_name)?;
     Ok(())
 });
