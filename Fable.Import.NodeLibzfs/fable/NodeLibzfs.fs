@@ -383,24 +383,30 @@ module Libzfs =
         static member Decoder =
             Decode.decodeString VDev.Decode
 
+    type ZProp =
+        {
+            name: string;
+            value: string;
+        }
 
     type [<AllowNullLiteral>] Dataset =
         abstract name: string with get, set
         abstract kind: string with get, set
+        abstract props: ZProp array with get, set
 
     type [<AllowNullLiteral>] Pool =
         abstract name: string with get, set
-        abstract uid: string with get, set
-        abstract hostname: string with get, set
+        abstract guid: int with get, set
         abstract health: string with get, set
+        abstract hostname: string with get, set
         abstract hostid: int option with get, set
         abstract state: string with get, set
+        abstract readonly: bool with get, set
         abstract size: int with get, set
         abstract vdev: VDev with get, set
+        abstract props: ZProp array with get, set
         abstract datasets: Dataset array with get, set
 
     type [<AllowNullLiteral>] NodeLibzfs =
         abstract getPoolByName: name: string -> Pool option
         abstract getImportedPools: unit -> Pool list
-        abstract getDatasetStringProp: name: string * prop: string -> string option
-        abstract getDatasetUint64Prop: name: string * prop: string -> int option

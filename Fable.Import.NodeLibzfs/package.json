@@ -7,10 +7,10 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@iml/node-libzfs": "^0.1.13",
     "babel-core": "^6.26.0",
     "babel-preset-env": "^1.6.1",
-    "jest": "^22.4.2",
-    "jest-fable-preprocessor": "^1.4.0",
-    "@iml/node-libzfs": "^0.1.13"
+    "jest": "^22.4.3",
+    "jest-fable-preprocessor": "^1.4.0"
   }
 }
