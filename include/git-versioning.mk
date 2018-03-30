@@ -47,6 +47,8 @@ else
 	BUILD_NUMBER := $(JENKINS_BUILD_TAG)
 endif
 
+MODULE_SUBDIR ?= $(subst -,_,$(NAME))
+
 # only overwrite scm_version.py if we have info from git
 ifneq ($(strip $(PACKAGE_VERSION)),)
 $(shell { echo 'VERSION = "$(VERSION)"';                                    \

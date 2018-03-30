@@ -1,25 +1,28 @@
+BUILD_METHOD := Registry
+
 include include/git-versioning.mk
 
 ifeq ($(strip $(VERSION)),)
-VERSION         := $(shell set -x; PYTHONPATH=chroma_agent python -c \
+VERSION         := $(shell set -x; PYTHONPATH=$(MODULE_SUBDIR) python -c \
 		     "import scm_version; print scm_version.VERSION")
 endif
 
 ifeq ($(strip $(PACKAGE_VERSION)),)
-PACKAGE_VERSION := $(shell set -x; PYTHONPATH=chroma_agent python -c \
+PACKAGE_VERSION := $(shell set -x; PYTHONPATH=$(MODULE_SUBDIR) python -c \
 		     "import scm_version; print scm_version.PACKAGE_VERSION")
 endif
 
+include include/common.mk
 include include/python-common.mk
 include include/rpm-common.mk
 include include/copr.mk
 
-# should always remove the sources if DIST_VERSION was set
+# should always remove the tarball sources if DIST_VERSION was set
 ifneq ($(DIST_VERSION),$(PACKAGE_VERSION))
-    $(shell rm -f $(RPM_SOURCES))
+    $(shell rm -f $(word 1,$(RPM_SOURCES)))
 endif
 
-%.egg-info/SOURCES.txt:
+%.egg-info/SOURCES.txt: install_build_deps-stamp
 	python setup.py egg_info
 
 deps: $(subst -,_,$(NAME)).egg-info/SOURCES.txt
@@ -69,5 +72,12 @@ _topdir/SOURCES/%: %
 	mkdir -p _topdir/SOURCES
 	cp $< $@
 
-include deps
+install_build_deps: install_build_deps-stamp
 
+install_build_deps-stamp:
+	if ! rpm -q python-setuptools; then   \
+	    yum -y install python-setuptools; \
+	fi
+	touch $@
+
+include deps

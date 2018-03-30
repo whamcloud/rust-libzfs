@@ -19,4 +19,15 @@ unpack: $(SRPM)
 
 download: $(SRPM)
 
-.PHONY: unpack download
+$(RPM_SOURCES):
+	if ! spectool $(RPM_DIST_VERSION_ARG)                  \
+		   --define "epel 1"                           \
+		   -g $(RPM_SPEC); then                        \
+	    echo "Failed to fetch $@.";                        \
+	    exit 1;                                            \
+	fi
+
+install_build_deps:
+	echo "Nothing to do"
+
+.PHONY: unpack download install_build_deps
