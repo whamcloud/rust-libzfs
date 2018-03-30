@@ -20,29 +20,31 @@ module Libzfs =
             cache: VDev array;
         }
 
-        static member Decode =
-            Decode.map3
-                (fun children spares cache ->
-                    {
-                        children = children;
-                        spares = spares;
-                        cache = cache;
-                    }
-                )
-                (Decode.field "children" VDev.DecodeArray)
-                (Decode.field "spares" VDev.DecodeArray)
-                (Decode.field "cache" VDev.DecodeArray)
+    module Root =
+        let decode x =
+            x
+                |> Decode.map3
+                    (fun children spares cache ->
+                        {
+                            children = children;
+                            spares = spares;
+                            cache = cache;
+                        }
+                    )
+                    (Decode.field "children" VDev.decodeArray)
+                    (Decode.field "spares" VDev.decodeArray)
+                    (Decode.field "cache" VDev.decodeArray)
 
-        static member Encode
+        let encode
             ({
                 children = children;
                 spares = spares;
                 cache = cache;
             }) =
                 Encode.object [
-                    ("children", (Encode.array (VDev.EncodeList children)));
-                    ("spares", (Encode.array (VDev.EncodeList spares)));
-                    ("cache", (Encode.array (VDev.EncodeList cache)));
+                    ("children", (Encode.array (VDev.encodeList children)));
+                    ("spares", (Encode.array (VDev.encodeList spares)));
+                    ("cache", (Encode.array (VDev.encodeList cache)));
                 ]
 
 
@@ -52,21 +54,22 @@ module Libzfs =
             Root: Root;
         }
 
-        static member Key = "Root"
+    module RootNode =
+        let private key = "Root"
 
-        static member Encode x =
+        let encode x =
             Encode.object [
-                (RootNode.Key, Root.Encode x.Root)
+                (key, Root.encode x.Root)
             ]
 
-        static member Decode =
+        let decode =
             Decode.map
                 (fun x ->
                     {
                         Root = x;
                     }
                 )
-                (Decode.field RootNode.Key Root.Decode)
+                (Decode.field key Root.decode)
 
 
     type File =
@@ -77,7 +80,8 @@ module Libzfs =
             is_log: bool option;
         }
 
-        static member Encode
+    module File =
+        let encode
             ({
                 guid = guid;
                 state = state;
@@ -91,7 +95,7 @@ module Libzfs =
                     ("is_log", (Encode.option Encode.bool isLog));
                 ]
 
-        static member Decode =
+        let decode =
             Decode.map4
                 (fun guid state path is_log ->
                     {
@@ -112,21 +116,22 @@ module Libzfs =
             File: File;
         }
 
-        static member Key = "File"
+    module FileNode =
+        let key = "File"
 
-        static member Encode x =
+        let encode x =
             Encode.object [
-                (FileNode.Key, File.Encode x.File)
+                (key, File.encode x.File)
             ]
 
-        static member Decode =
+        let decode =
             Decode.map
                 (fun x ->
                     {
                         File = x;
                     }
                 )
-                (Decode.field FileNode.Key File.Decode)
+                (Decode.field key File.decode)
 
     type Disk =
         {
@@ -139,7 +144,9 @@ module Libzfs =
             is_log: bool option;
         }
 
-        static member Encode
+    module Disk =
+
+        let encode
             ({
                 guid = guid;
                 state = state;
@@ -159,7 +166,7 @@ module Libzfs =
                     ("is_log", (Encode.option Encode.bool isLog));
                 ]
 
-        static member Decode =
+        let decode =
             Decode.map7
                 (fun guid state path devId physPath wholeDisk isLog ->
                     {
@@ -186,21 +193,22 @@ module Libzfs =
             Disk: Disk;
         }
 
-        static member Key = "Disk"
+    module DiskNode =
+        let key = "Disk"
 
-        static member Encode x =
+        let encode x =
             Encode.object [
-                (DiskNode.Key, Disk.Encode x.Disk)
+                (key, Disk.encode x.Disk)
             ]
 
-        static member Decode =
+        let decode =
             Decode.map
                 (fun x ->
                     {
                         Disk = x;
                     }
                 )
-                (Decode.field DiskNode.Key Disk.Decode)
+                (Decode.field key Disk.decode)
 
     type Mirror =
         {
@@ -208,134 +216,142 @@ module Libzfs =
             is_log: bool option;
         }
 
-
-        static member Encode
+    module Mirror =
+        let encode
             ({
                 children = children;
                 is_log = isLog;
             }) =
                 Encode.object [
-                    ("children", Encode.array (VDev.EncodeList children));
+                    ("children", Encode.array (VDev.encodeList children));
                     ("is_log", Encode.option Encode.bool isLog)
                 ]
 
-        static member Decode =
-            Decode.map2
-                (fun children isLog ->
-                    {
-                        children = children;
-                        is_log = isLog;
-                    }
-                )
-                (Decode.field "children" VDev.DecodeArray)
-                (Decode.field "is_log" (Decode.option Decode.bool))
+        let decode x =
+            x
+                |> Decode.map2
+                    (fun children isLog ->
+                        {
+                            children = children;
+                            is_log = isLog;
+                        }
+                    )
+                    (Decode.field "children" VDev.decodeArray)
+                    (Decode.field "is_log" (Decode.option Decode.bool))
 
     type MirrorNode =
         {
             Mirror: Mirror;
         }
 
-        static member Key = "Mirror"
+    module MirrorNode =
+        let private key = "Mirror"
 
-        static member Encode x =
+        let encode x =
             Encode.object [
-                (MirrorNode.Key, Mirror.Encode x.Mirror)
+                (key, Mirror.encode x.Mirror)
             ]
 
-        static member Decode =
+        let decode =
             Decode.map
                 (fun x ->
                     {
                         Mirror = x;
                     }
                 )
-                (Decode.field MirrorNode.Key Mirror.Decode)
+                (Decode.field key Mirror.decode)
 
     type RaidZ =
         {
             children: VDev array
         }
 
-        static member Encode
+    module RaidZ =
+        let encode
             ({
                 children = children;
             }:RaidZ) =
                 Encode.object [
-                    ("children", Encode.array (VDev.EncodeList children));
+                    ("children", Encode.array (VDev.encodeList children));
                 ]
 
-        static member Decode =
-            Decode.map
-                (fun children ->
-                    {
-                        children = children;
-                    }
-                )
-                (Decode.field "children" VDev.DecodeArray)
+        let decode x =
+            x
+                |> Decode.map
+                    (fun children ->
+                        ({
+                            children = children;
+                        }:RaidZ)
+                    )
+                    (Decode.field "children" VDev.decodeArray)
 
     type  RaidZNode =
         {
             RaidZ: RaidZ
         }
 
-        static member Key = "RaidZ"
+    module RaidZNode =
+        let key = "RaidZ"
 
-        static member Encode x =
+        let encode x =
             Encode.object [
-                (RaidZNode.Key, RaidZ.Encode x.RaidZ)
+                (key, RaidZ.encode x.RaidZ)
             ]
 
-        static member Decode =
+        let decode =
             Decode.map
                 (fun x ->
                     {
                         RaidZ = x;
                     }
                 )
-                (Decode.field RaidZNode.Key RaidZ.Decode)
+                (Decode.field RaidZNode.key RaidZ.decode)
 
     type Replacing =
         {
             children: VDev array;
         }
 
-        static member Encode
+    module Replacing =
+        let encode
             ({
                 children = children;
             }:Replacing) =
                 Encode.object [
-                    ("children", Encode.array (VDev.EncodeList children));
+                    ("children", Encode.array (VDev.encodeList children));
                 ]
 
-        static member Decode =
-            Decode.map
-                (fun children ->
-                    {
-                        children = children;
-                    }
-                )
-                (Decode.field "children" VDev.DecodeArray)
+        let decode x =
+            x
+                |> Decode.map
+                    (fun children ->
+                        {
+                            children = children;
+                        }
+                    )
+                    (Decode.field "children" VDev.decodeArray)
 
     type ReplacingNode =
         {
             Replacing: Replacing;
         }
 
-        static member Key = "Replacing"
+    module ReplacingNode =
+        let private key = "Replacing"
 
-        static member Encode x =
+        let encode x =
             Encode.object [
-                (ReplacingNode.Key, Replacing.Encode x.Replacing)
+                (key, Replacing.encode x.Replacing)
             ]
 
-        static member Decode =
+        let decode =
             Decode.map
                 (fun x ->
                     {
                         Replacing = x;
                     }
                 )
-                (Decode.field ReplacingNode.Key Replacing.Decode)
+                (Decode.field key Replacing.decode)
 
     type VDev =
         | Root of RootNode
@@ -345,44 +361,46 @@ module Libzfs =
         | RaidZ of RaidZNode
         | Replacing of ReplacingNode
 
-        static member Encode =
+    module VDev =
+        let encode =
             function
                 | Root x ->
-                    RootNode.Encode x
+                    RootNode.encode x
                 | File x ->
-                    FileNode.Encode x
+                    FileNode.encode x
                 | Disk x ->
-                    DiskNode.Encode x
+                    DiskNode.encode x
                 | Mirror x ->
-                    MirrorNode.Encode x
+                    MirrorNode.encode x
                 | RaidZ x ->
-                    RaidZNode.Encode x
+                    RaidZNode.encode x
                 | Replacing x ->
-                    ReplacingNode.Encode x
+                    ReplacingNode.encode x
 
-        static member EncodeList xs =
+        let encodeList xs =
             xs
-                |> Array.map (VDev.Encode)
+                |> Array.map (encode)
 
-        static member Encoder =
-            VDev.Encode
+        let encoder =
+            encode
                 >> Encode.encode 0
 
-        static member Decode =
+        let decode =
             Decode.oneOf [
-                RootNode.Decode >> Result.map VDev.Root;
-                FileNode.Decode >> Result.map VDev.File;
-                DiskNode.Decode >> Result.map VDev.Disk;
-                MirrorNode.Decode >> Result.map VDev.Mirror;
-                RaidZNode.Decode >> Result.map VDev.RaidZ;
-                ReplacingNode.Decode >> Result.map VDev.Replacing;
+                RootNode.decode >> Result.map VDev.Root;
+                FileNode.decode >> Result.map VDev.File;
+                DiskNode.decode >> Result.map VDev.Disk;
+                MirrorNode.decode >> Result.map VDev.Mirror;
+                RaidZNode.decode >> Result.map VDev.RaidZ;
+                ReplacingNode.decode >> Result.map VDev.Replacing;
             ]
 
-        static member DecodeArray =
-            Decode.array VDev.Decode
+        let decodeArray =
+            Decode.array decode
 
-        static member Decoder =
-            Decode.decodeString VDev.Decode
+        let decoder =
+            Decode.decodeString decode
+
 
     type ZProp =
         {
@@ -489,7 +507,7 @@ module Libzfs =
                     ("state", Encode.string state);
                     ("readonly", Encode.bool readonly);
                     ("size", Encode.int size);
-                    ("vdev", VDev.Encode vdev);
+                    ("vdev", VDev.encode vdev);
                     ("props", Encode.array (Array.map ZProp.encode props));
                     ("datasets", Encode.array (Array.map Dataset.encode datasets));
                 ]
@@ -520,7 +538,7 @@ module Libzfs =
                 |> (Decode.required "state" Decode.string)
                 |> (Decode.required "readonly" Decode.bool)
                 |> (Decode.required "size" Decode.int)
-                |> (Decode.required "vdev" VDev.Decode)
+                |> (Decode.required "vdev" VDev.decode)
                 |> (Decode.required "props" (Decode.array ZProp.decode))
                 |> (Decode.required "datasets" (Decode.array Dataset.decode))
 

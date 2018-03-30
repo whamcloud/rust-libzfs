@@ -9,7 +9,6 @@ open libzfs.Libzfs
 open Fable.Import.Jest
 open Thot.Json
 
-
 let private encodePretty =
     Encode.encode 4
 
@@ -25,11 +24,11 @@ test "encode / decode File" <| fun () ->
                 }
         }
 
-    let encoded = encodePretty (Libzfs.VDev.Encode (File file))
+    let encoded = encodePretty (Libzfs.VDev.encode (File file))
 
     Matchers.toMatchSnapshot encoded
 
-    VDev.Decoder encoded
+    VDev.decoder encoded
         |> Matchers.toMatchSnapshot
 
 
@@ -47,11 +46,11 @@ test "encode / decode Disk" <| fun () ->
             }
     }
 
-    let encoded = encodePretty (Libzfs.VDev.Encode (Disk disk))
+    let encoded = encodePretty (Libzfs.VDev.encode (Disk disk))
 
     Matchers.toMatchSnapshot encoded
 
-    VDev.Decoder encoded
+    VDev.decoder encoded
         |> Matchers.toMatchSnapshot
 
 
@@ -88,12 +87,12 @@ test "decode / encode Mirror" <| fun () ->
           }
     """
 
-    let decoded = VDev.Decoder mirror
+    let decoded = VDev.decoder mirror
 
     Matchers.toMatchSnapshot decoded
 
     match decoded with
-        | Ok x -> Matchers.toMatchSnapshot (encodePretty (VDev.Encode x))
+        | Ok x -> Matchers.toMatchSnapshot (encodePretty (VDev.encode x))
         | Error e -> failwith e
 
 
@@ -140,12 +139,12 @@ test "decode / encode RaidZ" <| fun () ->
               }
     """
 
-    let decoded = VDev.Decoder raidZ
+    let decoded = VDev.decoder raidZ
 
     Matchers.toMatchSnapshot decoded
 
     match decoded with
-        | Ok x -> Matchers.toMatchSnapshot (encodePretty (VDev.Encode x))
+        | Ok x -> Matchers.toMatchSnapshot (encodePretty (VDev.encode x))
         | Error e -> failwith e
 
 
@@ -225,12 +224,12 @@ test "decode / encode whole tree" <| fun () ->
 }
     """
 
-    let decoded = VDev.Decoder root
+    let decoded = VDev.decoder root
 
     Matchers.toMatchSnapshot decoded
 
     match decoded with
-        | Ok x -> Matchers.toMatchSnapshot (encodePretty (VDev.Encode x))
+        | Ok x -> Matchers.toMatchSnapshot (encodePretty (VDev.encode x))
         | Error e -> failwith e
 
 test "decode / encode pool" <| fun () ->
