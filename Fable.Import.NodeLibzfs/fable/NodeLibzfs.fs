@@ -4,6 +4,7 @@
 
 module rec libzfs
 open Fable.Core
+open Fable.Core.JsInterop
 open Thot.Json
 open Libzfs
 
@@ -11,8 +12,9 @@ let [<Import("default","@iml/node-libzfs")>] libzfs: Libzfs.IExports = jsNative
 
 module Libzfs =
     type [<AllowNullLiteral>] IExports =
-        [<Emit("$0()")>] abstract Invoke: unit -> NodeLibzfs
+        [<Emit("$0()")>] abstract Invoke: unit -> INodeLibzfs
 
+    [<Pojo>]
     type Root =
         {
             children: VDev array;
@@ -47,8 +49,7 @@ module Libzfs =
                     ("cache", (Encode.array (VDev.encodeList cache)));
                 ]
 
-
-
+    [<Pojo>]
     type RootNode =
         {
             Root: Root;
@@ -71,7 +72,7 @@ module Libzfs =
                 )
                 (Decode.field key Root.decode)
 
-
+    [<Pojo>]
     type File =
         {
             guid: string option;
@@ -110,7 +111,7 @@ module Libzfs =
                 (Decode.field "path" Decode.string)
                 (Decode.field "is_log" (Decode.option Decode.bool))
 
-
+    [<Pojo>]
     type FileNode =
         {
             File: File;
@@ -133,6 +134,7 @@ module Libzfs =
                 )
                 (Decode.field key File.decode)
 
+    [<Pojo>]
     type Disk =
         {
             guid: string option;
@@ -187,7 +189,7 @@ module Libzfs =
                 (Decode.field "whole_disk" (Decode.option Decode.bool))
                 (Decode.field "is_log" (Decode.option Decode.bool))
 
-
+    [<Pojo>]
     type DiskNode =
         {
             Disk: Disk;
@@ -210,6 +212,7 @@ module Libzfs =
                 )
                 (Decode.field key Disk.decode)
 
+    [<Pojo>]
     type Mirror =
         {
             children: VDev array;
@@ -239,6 +242,7 @@ module Libzfs =
                     (Decode.field "children" VDev.decodeArray)
                     (Decode.field "is_log" (Decode.option Decode.bool))
 
+    [<Pojo>]
     type MirrorNode =
         {
             Mirror: Mirror;
@@ -261,6 +265,7 @@ module Libzfs =
                 )
                 (Decode.field key Mirror.decode)
 
+    [<Pojo>]
     type RaidZ =
         {
             children: VDev array
@@ -285,6 +290,7 @@ module Libzfs =
                     )
                     (Decode.field "children" VDev.decodeArray)
 
+    [<Pojo>]
     type  RaidZNode =
         {
             RaidZ: RaidZ
@@ -307,6 +313,7 @@ module Libzfs =
                 )
                 (Decode.field RaidZNode.key RaidZ.decode)
 
+    [<Pojo>]
     type Replacing =
         {
             children: VDev array;
@@ -331,6 +338,7 @@ module Libzfs =
                     )
                     (Decode.field "children" VDev.decodeArray)
 
+    [<Pojo>]
     type ReplacingNode =
         {
             Replacing: Replacing;
@@ -377,6 +385,71 @@ module Libzfs =
                 | Replacing x ->
                     ReplacingNode.encode x
 
+        /// Encode a JS representation of a VDev
+        /// tree to a DU that F# / Fable can understand.
+        /// This must be called by any function over the FFI.
+        let rec encodeToFable (x:obj) =
+          if !!x?Root |> Option.isSome then
+            let rootNode:RootNode = !!x
+            let root = rootNode.Root
+
+            {
+              rootNode with
+                Root =
+                  {
+                    root with
+                      children = Array.map (encodeToFable) root.children
+                      cache = Array.map (encodeToFable) root.cache
+                      spares = Array.map (encodeToFable) root.spares
+                  }
+            }
+              |> Root
+          else if !!x?File |> Option.isSome then
+            File !!x
+          else if !!x?Disk |> Option.isSome then
+            Disk !!x
+          else if !!x?Mirror |> Option.isSome then
+            let mirrorNode:MirrorNode = !!x
+            let mirror = mirrorNode.Mirror
+
+            {
+              mirrorNode with
+                Mirror =
+                  {
+                    mirror with
+                      children = Array.map encodeToFable mirror.children
+                  }
+            }
+              |> Mirror
+          else if !!x?RaidZ |> Option.isSome then
+            let raidZNode:RaidZNode = !!x
+            let raidZ = raidZNode.RaidZ
+
+            {
+              raidZNode with
+                RaidZ =
+                  {
+                    raidZ with
+                      children = Array.map encodeToFable raidZ.children
+                  }
+            }
+              |> RaidZ
+          else if !!x?Replacing |> Option.isSome then
+            let replacingNode:ReplacingNode = !!x
+            let replacing = replacingNode.Replacing
+
+            {
+              replacingNode with
+                Replacing =
+                  {
+                    replacing with
+                      children = Array.map encodeToFable replacing.children
+                  }
+            }
+              |> Replacing
+          else
+            failwithf "Could not decode Vdev tree, failed on %A" x
+
         let encodeList xs =
             xs
                 |> Array.map (encode)
@@ -401,7 +474,7 @@ module Libzfs =
         let decoder =
             Decode.decodeString decode
 
-
+    [<Pojo>]
     type ZProp =
         {
             name: string;
@@ -430,6 +503,7 @@ module Libzfs =
                 (Decode.field "name" Decode.string)
                 (Decode.field "value" Decode.string)
 
+    [<Pojo>]
     type Dataset =
         {
             name: string;
@@ -468,6 +542,7 @@ module Libzfs =
                 (Decode.field "kind" Decode.string)
                 (Decode.field "props" (Decode.array ZProp.decode))
 
+    [<Pojo>]
     type Pool =
         {
             name: string;
@@ -545,7 +620,29 @@ module Libzfs =
         let decoder =
             Decode.decodeString decode
 
-    type [<AllowNullLiteral>] NodeLibzfs =
+    type [<AllowNullLiteral>] INodeLibzfs =
         abstract getPoolByName: name: string -> Pool option
         abstract getDatasetByName: name: string -> Dataset option
         abstract getImportedPools: unit -> Pool list
+
+let getImportedPools() =
+    libzfs.Invoke().getImportedPools()
+      |> List.map (fun x ->
+        {
+          x with
+            vdev = Libzfs.VDev.encodeToFable x.vdev
+        }
+      )
+
+let getPoolByName x =
+  x
+    |> libzfs.Invoke().getPoolByName
+    |> Option.map (fun x ->
+      {
+        x with
+          vdev = Libzfs.VDev.encodeToFable x.vdev
+      }
+    )
+
+let getDatasetbyName x =
+  libzfs.Invoke().getDatasetByName x

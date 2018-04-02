@@ -3,12 +3,12 @@
 exports[`decode / encode Mirror 1`] = `
 Result {
   "data": VDev {
-    "data": MirrorNode {
-      "Mirror": Mirror {
+    "data": Object {
+      "Mirror": Object {
         "children": Array [
           VDev {
-            "data": DiskNode {
-              "Disk": Disk {
+            "data": Object {
+              "Disk": Object {
                 "dev_id": "ata-VBOX_HARDDISK_081118FC1221NCJ6G802-part1",
                 "guid": "0xC0C12F18FC259D92",
                 "is_log": null,
@@ -21,8 +21,8 @@ Result {
             "tag": 2,
           },
           VDev {
-            "data": DiskNode {
-              "Disk": Disk {
+            "data": Object {
+              "Disk": Object {
                 "dev_id": "ata-VBOX_HARDDISK_081118FC1221NCJ6G803-part1",
                 "guid": "0x171F9BA74F8A8960",
                 "is_log": null,
@@ -79,12 +79,12 @@ exports[`decode / encode Mirror 2`] = `
 exports[`decode / encode RaidZ 1`] = `
 Result {
   "data": VDev {
-    "data": RaidZNode {
-      "RaidZ": RaidZ {
+    "data": Object {
+      "RaidZ": Object {
         "children": Array [
           VDev {
-            "data": DiskNode {
-              "Disk": Disk {
+            "data": Object {
+              "Disk": Object {
                 "dev_id": "ata-VBOX_HARDDISK_081118FC1221NCJ6G806-part1",
                 "guid": "0xC49B177A2271FE62",
                 "is_log": null,
@@ -97,8 +97,8 @@ Result {
             "tag": 2,
           },
           VDev {
-            "data": DiskNode {
-              "Disk": Disk {
+            "data": Object {
+              "Disk": Object {
                 "dev_id": "ata-VBOX_HARDDISK_081118FC1221NCJ6G808-part1",
                 "guid": "0x85D9C319913951B6",
                 "is_log": null,
@@ -111,8 +111,8 @@ Result {
             "tag": 2,
           },
           VDev {
-            "data": DiskNode {
-              "Disk": Disk {
+            "data": Object {
+              "Disk": Object {
                 "dev_id": "ata-VBOX_HARDDISK_081118FC1221NCJ6G809-part1",
                 "guid": "0xA7F3292BAE60BFE1",
                 "is_log": null,
@@ -812,12 +812,12 @@ exports[`decode / encode pool 1`] = `
 exports[`decode / encode whole tree 1`] = `
 Result {
   "data": VDev {
-    "data": RootNode {
-      "Root": Root {
+    "data": Object {
+      "Root": Object {
         "cache": Array [
           VDev {
-            "data": DiskNode {
-              "Disk": Disk {
+            "data": Object {
+              "Disk": Object {
                 "dev_id": "ata-VBOX_HARDDISK_081118FC1221NCJ6G8G3-part1",
                 "guid": "0xC11810B8A5D140F6",
                 "is_log": null,
@@ -832,12 +832,12 @@ Result {
         ],
         "children": Array [
           VDev {
-            "data": MirrorNode {
-              "Mirror": Mirror {
+            "data": Object {
+              "Mirror": Object {
                 "children": Array [
                   VDev {
-                    "data": DiskNode {
-                      "Disk": Disk {
+                    "data": Object {
+                      "Disk": Object {
                         "dev_id": "ata-VBOX_HARDDISK_081118FC1221NCJ6G8G1-part1",
                         "guid": "0x970502344C66A995",
                         "is_log": null,
@@ -850,8 +850,8 @@ Result {
                     "tag": 2,
                   },
                   VDev {
-                    "data": DiskNode {
-                      "Disk": Disk {
+                    "data": Object {
+                      "Disk": Object {
                         "dev_id": "ata-VBOX_HARDDISK_081118FC1221NCJ6G8G2-part1",
                         "guid": "0xF44F3768513DAD5B",
                         "is_log": null,
@@ -872,8 +872,8 @@ Result {
         ],
         "spares": Array [
           VDev {
-            "data": DiskNode {
-              "Disk": Disk {
+            "data": Object {
+              "Disk": Object {
                 "dev_id": "ata-VBOX_HARDDISK_081118FC1221NCJ6G8G4-part1",
                 "guid": "0xBE9F6A598F3A7A4E",
                 "is_log": null,
@@ -886,8 +886,8 @@ Result {
             "tag": 2,
           },
           VDev {
-            "data": DiskNode {
-              "Disk": Disk {
+            "data": Object {
+              "Disk": Object {
                 "dev_id": "ata-VBOX_HARDDISK_081118FC1221NCJ6G8G5-part1",
                 "guid": "0x25F1968AE86CFE17",
                 "is_log": null,
@@ -1000,8 +1000,8 @@ exports[`encode / decode Disk 1`] = `
 exports[`encode / decode Disk 2`] = `
 Result {
   "data": VDev {
-    "data": DiskNode {
-      "Disk": Disk {
+    "data": Object {
+      "Disk": Object {
         "dev_id": "ata-VBOX_HARDDISK_081118FC1221NCJ6G807-part1",
         "guid": "0x28F29B87B841C810",
         "is_log": false,
@@ -1031,8 +1031,8 @@ exports[`encode / decode File 1`] = `
 exports[`encode / decode File 2`] = `
 Result {
   "data": VDev {
-    "data": FileNode {
-      "File": File {
+    "data": Object {
+      "File": Object {
         "guid": "0x28F29B87B841C810",
         "is_log": false,
         "path": "/tmp/file_fs",
@@ -1040,6 +1040,34 @@ Result {
       },
     },
     "tag": 1,
+  },
+  "tag": 0,
+}
+`;
+
+exports[`encoding to Fable 1`] = `
+VDev {
+  "data": Object {
+    "Root": Object {
+      "cache": Array [],
+      "children": Array [
+        VDev {
+          "data": Object {
+            "Disk": Object {
+              "dev_id": "ata-VBOX_HARDDISK_081118FC1221NCJ6G8G1-part1",
+              "guid": "0xBE4606AF1C39DC3F",
+              "is_log": null,
+              "path": "/dev/sdb1",
+              "phys_path": "pci-0000:00:0d.0-ata-2.0",
+              "state": "ONLINE",
+              "whole_disk": true,
+            },
+          },
+          "tag": 2,
+        },
+      ],
+      "spares": Array [],
+    },
   },
   "tag": 0,
 }
