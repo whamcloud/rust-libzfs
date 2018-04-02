@@ -8,6 +8,8 @@ open libzfs
 open libzfs.Libzfs
 open Fable.Import.Jest
 open Thot.Json
+open Fable.Core
+open Fable.Core.JsInterop
 
 let private encodePretty =
     Encode.encode 4
@@ -872,3 +874,31 @@ test "decode / encode pool" <| fun () ->
     match decoded with
         | Ok x -> Matchers.toMatchSnapshot (encodePretty (Pool.encode x))
         | Error e -> failwith e
+
+
+test "encoding to Fable" <| fun () ->
+    let tree =
+        JsInterop.createObj [
+            "Root" ==> createObj [
+                "children" ==> [|
+                    createObj [
+                        "Disk" ==>
+                            createObj [
+                                "guid" ==> "0xBE4606AF1C39DC3F";
+                                "state" ==> "ONLINE";
+                                "path" ==> "/dev/sdb1";
+                                "dev_id" ==> "ata-VBOX_HARDDISK_081118FC1221NCJ6G8G1-part1";
+                                "phys_path" ==> "pci-0000:00:0d.0-ata-2.0";
+                                "whole_disk" ==> true;
+                                "is_log" ==> None;
+                            ]
+                    ]
+                |]
+                "cache" ==> [||];
+                "spares" ==> [||];
+            ];
+        ]
+
+    tree
+        |> VDev.encodeToFable
+        |> Matchers.toMatchSnapshot
