@@ -1,6 +1,6 @@
 [package]
 name = "libzfs-sys"
-version = "0.5.3"
+version = "0.5.4"
 description = "Rust bindings to libzfs"
 license = "MIT"
 repository = "https://github.com/intel-hpdd/rust-libzfs"

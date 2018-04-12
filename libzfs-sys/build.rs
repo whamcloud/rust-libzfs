@@ -93,8 +93,8 @@ fn main() {
         .whitelisted_function("zfs_validate_name")
         .whitelisted_function("zprop_free_list")
         .clang_arg("-I/usr/lib/gcc/x86_64-redhat-linux/4.8.2/include/")
-        .clang_arg("-I/usr/src/zfs-0.7.7/lib/libspl/include/")
-        .clang_arg("-I/usr/src/zfs-0.7.7/include/")
+        .clang_arg("-I/usr/src/zfs-0.7.8/lib/libspl/include/")
+        .clang_arg("-I/usr/src/zfs-0.7.8/include/")
         .generate()
         .expect("Unable to generate bindings");
 

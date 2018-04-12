@@ -1,6 +1,6 @@
 [package]
 name = "node-libzfs"
-version = "0.1.15"
+version = "0.1.16"
 authors = ["IML Team <iml@intel.com>"]
 license = "MIT"
 build = "build.rs"
@@ -17,4 +17,4 @@ neon = "0.1.22"
 neon-serde = "0.0.3"
 serde = "1.0"
 serde_derive = "1.0"
-libzfs = "0.6.4"
+libzfs = "0.6.5"
