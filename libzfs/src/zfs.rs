@@ -62,7 +62,7 @@ impl Zfs {
         let pl = self.prop_list()?;
 
         let xs = pl.filter_map(|x: ZpropItem| match x.prop() {
-            sys::zfs_prop_t::ZFS_PROP_BAD => self.user_props()
+            sys::zfs_prop_t_ZFS_PROP_BAD => self.user_props()
                 .lookup_nv_list(x.user_prop())
                 .and_then(|nv| nv.lookup_string(sys::zprop_value()))
                 .map(|v| ZProp {

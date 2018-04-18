@@ -93,7 +93,7 @@ pub fn zpool_config_vdev_stats() -> String {
 }
 
 pub fn zfs_type_dataset() -> zfs_type_t {
-    zfs_type_t_ZFS_TYPE_FILESYSTEM | zfs_type_t_ZFS_TYPE_VOLUME | zfs_type_t_ZFS_TYPE_SNAPSHOT
+    zfs_type_t::ZFS_TYPE_FILESYSTEM | zfs_type_t::ZFS_TYPE_VOLUME | zfs_type_t::ZFS_TYPE_SNAPSHOT
 }
 
 /// Converts a `Vec<u64>` to `vdev_stat_t`
@@ -268,7 +268,7 @@ mod tests {
             while !pl_p.is_null() {
                 let zfs_prop = to_zfs_prop_t((*pl_p).pl_prop).unwrap();
 
-                if zfs_prop != zfs_prop_t::ZFS_PROP_BAD {
+                if zfs_prop != zfs_prop_t_ZFS_PROP_BAD {
                     let raw = CString::new("0".repeat(319)).unwrap().into_raw();
 
                     let ret = zfs_prop_get(
