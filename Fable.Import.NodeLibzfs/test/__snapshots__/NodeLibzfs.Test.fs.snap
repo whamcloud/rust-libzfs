@@ -184,7 +184,7 @@ exports[`decode / encode pool 1`] = `
     \\"hostid\\": null,
     \\"state\\": \\"ACTIVE\\",
     \\"readonly\\": false,
-    \\"size\\": 83886080,
+    \\"size\\": \\"83886080\\",
     \\"vdev\\": {
         \\"Root\\": {
             \\"children\\": [
