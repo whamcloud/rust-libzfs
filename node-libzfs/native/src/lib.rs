@@ -25,7 +25,7 @@ struct Pool {
     hostid: Option<u64>,
     state: String,
     readonly: bool,
-    size: u64,
+    size: String,
     vdev: VDev,
     props: Vec<ZProp>,
     datasets: Vec<JsDataset>,
@@ -85,7 +85,7 @@ fn convert_to_js_pool(p: &Zpool) -> Result<Pool, Throw> {
         hostid,
         state: c_string_to_string(p.state_name())?,
         readonly: p.read_only(),
-        size: p.size(),
+        size: p.size().to_string(),
         props: vec![],
         vdev: p.vdev_tree()
             .or_else(|_| JsError::throw(Kind::Error, "Could not enumerate vdev tree"))?,

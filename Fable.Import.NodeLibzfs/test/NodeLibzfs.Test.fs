@@ -244,7 +244,7 @@ test "decode / encode pool" <| fun () ->
   "hostid": 3914625515,
   "state": "ACTIVE",
   "readonly": false,
-  "size": 83886080,
+  "size": "83886080",
   "vdev": {
     "Root": {
       "children": [

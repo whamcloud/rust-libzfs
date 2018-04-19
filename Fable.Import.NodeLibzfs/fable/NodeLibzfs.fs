@@ -552,7 +552,7 @@ module Libzfs =
             hostid: int option;
             state: string;
             readonly: bool;
-            size: int;
+            size: string;
             vdev: VDev;
             props: ZProp array;
             datasets: Dataset array;
@@ -581,7 +581,7 @@ module Libzfs =
                     ("hostid", Encode.option Encode.int hostid);
                     ("state", Encode.string state);
                     ("readonly", Encode.bool readonly);
-                    ("size", Encode.int size);
+                    ("size", Encode.string size);
                     ("vdev", VDev.encode vdev);
                     ("props", Encode.array (Array.map ZProp.encode props));
                     ("datasets", Encode.array (Array.map Dataset.encode datasets));
@@ -612,7 +612,7 @@ module Libzfs =
                 |> (Decode.required "hostid" (Decode.option Decode.int))
                 |> (Decode.required "state" Decode.string)
                 |> (Decode.required "readonly" Decode.bool)
-                |> (Decode.required "size" Decode.int)
+                |> (Decode.required "size" Decode.string)
                 |> (Decode.required "vdev" VDev.decode)
                 |> (Decode.required "props" (Decode.array ZProp.decode))
                 |> (Decode.required "datasets" (Decode.array Dataset.decode))
