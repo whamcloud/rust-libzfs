@@ -3,7 +3,7 @@ storage:none
 
 clitool dotnet-fable
 nuget Fable.Core
-nuget Thot.Json
+nuget Thoth.Json
 nuget Fable.Import.Jest
 
 
