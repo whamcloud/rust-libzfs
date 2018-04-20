@@ -5,7 +5,7 @@
 module rec libzfs
 open Fable.Core
 open Fable.Core.JsInterop
-open Thot.Json
+open Thoth.Json
 open Libzfs
 
 let [<Import("default","@iml/node-libzfs")>] libzfs: Libzfs.IExports = jsNative

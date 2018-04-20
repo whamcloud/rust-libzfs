@@ -7,7 +7,7 @@ module LibzfsTest
 open libzfs
 open libzfs.Libzfs
 open Fable.Import.Jest
-open Thot.Json
+open Thoth.Json
 open Fable.Core
 open Fable.Core.JsInterop
 
