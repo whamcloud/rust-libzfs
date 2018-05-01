@@ -41,7 +41,7 @@ test "encode / decode Disk" <| fun () ->
                 guid = Some "0x28F29B87B841C810";
                 state = "ONLINE";
                 path = "/dev/disk/by-id/ata-VBOX_HARDDISK_081118FC1221NCJ6G807-part1";
-                dev_id = "ata-VBOX_HARDDISK_081118FC1221NCJ6G807-part1";
+                dev_id = Some "ata-VBOX_HARDDISK_081118FC1221NCJ6G807-part1";
                 phys_path = Some "pci-0000:00:0d.0-ata-8.0";
                 whole_disk = Some true;
                 is_log = Some false;
