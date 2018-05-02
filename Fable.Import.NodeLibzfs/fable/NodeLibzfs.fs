@@ -140,7 +140,7 @@ module Libzfs =
             guid: string option;
             state: string;
             path: string;
-            dev_id: string;
+            dev_id: string option;
             phys_path: string option;
             whole_disk: bool option;
             is_log: bool option;
@@ -162,7 +162,7 @@ module Libzfs =
                     ("guid", (Encode.option Encode.string guid));
                     ("state", Encode.string state);
                     ("path", Encode.string path);
-                    ("dev_id", Encode.string devId);
+                    ("dev_id", (Encode.option Encode.string devId));
                     ("phys_path", Encode.option Encode.string physPath);
                     ("whole_disk", (Encode.option Encode.bool wholeDisk));
                     ("is_log", (Encode.option Encode.bool isLog));
@@ -184,7 +184,7 @@ module Libzfs =
                 (Decode.field "guid" (Decode.option Decode.string))
                 (Decode.field "state" Decode.string)
                 (Decode.field "path" Decode.string)
-                (Decode.field "dev_id" Decode.string)
+                (Decode.field "dev_id" (Decode.option Decode.string))
                 (Decode.field "phys_path" (Decode.option Decode.string))
                 (Decode.field "whole_disk" (Decode.option Decode.bool))
                 (Decode.field "is_log" (Decode.option Decode.bool))
