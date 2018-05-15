@@ -15,7 +15,7 @@
 //! to the src dir. To rebuild bindings run `cargo build`.
 //!
 //! ## ZFS version
-//! These bindings were compiled against ZFS 0.7.8. As `libzfs` is not a stable interface,
+//! These bindings were compiled against ZFS 0.7.9. As `libzfs` is not a stable interface,
 //! they should only be used against this version.
 //!
 //! ## OS

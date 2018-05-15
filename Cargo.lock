@@ -158,12 +158,12 @@ dependencies = [
 
 [[package]]
 name = "libzfs"
-version = "0.6.6"
+version = "0.6.7"
 dependencies = [
  "cstr-argument 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "foreign-types 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "libzfs-sys 0.5.5",
+ "libzfs-sys 0.5.6",
  "nvpair-sys 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.39 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.39 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -171,7 +171,7 @@ dependencies = [
 
 [[package]]
 name = "libzfs-sys"
-version = "0.5.5"
+version = "0.5.6"
 dependencies = [
  "bindgen 0.36.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "nvpair-sys 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
