@@ -2,7 +2,9 @@ sudo: required
 language: generic
 services:
   - docker
-
+addons:
+  apt:
+    update: true
 jobs:
   include:
     - stage: test
