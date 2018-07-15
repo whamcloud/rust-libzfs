@@ -6,18 +6,19 @@ extern crate bindgen;
 extern crate pkg_config;
 
 use std::env;
+use std::io::{BufRead, BufReader};
+use std::path::PathBuf;
+use std::process::{Command, Stdio};
 
 fn main() {
     let out_file = env::current_dir().unwrap().join("src").join("bindings.rs");
 
-    env::set_var("LIBCLANG_PATH", "/opt/llvm-5.0.0/lib64/");
-
-    pkg_config::Config::new().probe("libzfs").unwrap();
+    let libzfs = pkg_config::Config::new().probe("libzfs").unwrap();
     println!("cargo:rustc-link-lib=zpool");
 
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
-        .constified_enum_module("boolean")
+        .constified_enum_module("boolean_t")
         .whitelist_var("vdev_stat_t")
         .whitelist_type("vdev_stat_t")
         .whitelist_var("ZPOOL_MAXPROPLEN")
@@ -61,8 +62,6 @@ fn main() {
         .blacklist_type("nvlist")
         .whitelist_function("libzfs_init")
         .whitelist_function("libzfs_fini")
-        .whitelist_function("thread_init")
-        .whitelist_function("thread_fini")
         .whitelist_function("zpool_import")
         .whitelist_function("zpool_export")
         .whitelist_function("zpool_find_import")
@@ -91,10 +90,17 @@ fn main() {
         .whitelist_function("zfs_expand_proplist")
         .whitelist_function("zfs_prop_to_name")
         .whitelist_function("zfs_validate_name")
-        .whitelist_function("zprop_free_list")
-        .clang_arg("-I/usr/lib/gcc/x86_64-redhat-linux/4.8.2/include/")
-        .clang_arg("-I/usr/src/zfs-0.7.9/lib/libspl/include/")
-        .clang_arg("-I/usr/src/zfs-0.7.9/include/")
+        .whitelist_function("zprop_free_list");
+
+    let bindings = list_gcc_include_paths()
+        .chain(libzfs.include_paths)
+        .fold(bindings, |bindings, include_path| {
+              let flag = format!("-I{}", include_path.to_string_lossy());
+              bindings.clang_arg(flag)
+        })
+    // include directory for zfsonlinux/zfs master branch
+        .clang_arg("-I/usr/src/zfs-0.7.0/include/")
+
         .generate()
         .expect("Unable to generate bindings");
 
@@ -102,4 +108,19 @@ fn main() {
     bindings
         .write_to_file(out_file)
         .expect("Couldn't write bindings!");
+}
+
+fn list_gcc_include_paths() -> impl Iterator<Item = PathBuf> {
+    let script_path = "./list_gcc_include_paths.sh";
+    let child = Command::new(script_path)
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect(&format!("Unable to spawn {}", script_path));
+
+    match child.stdout {
+        Some(stdout) =>
+            BufReader::new(stdout).lines()
+            .map(|line| PathBuf::from(line.unwrap())),
+        None => panic!("Couldn't read from {}", script_path),
+    }
 }

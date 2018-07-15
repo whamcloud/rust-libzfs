@@ -60,9 +60,7 @@ impl Libzfs {
     pub fn find_importable_pools(&mut self) -> nvpair::NvList {
         let _l = LOCK.lock().unwrap();
         unsafe {
-            sys::thread_init();
             let x = sys::zpool_find_import(self.raw, 0, ptr::null_mut());
-            sys::thread_fini();
 
             nvpair::NvList::from_ptr(x)
         }
