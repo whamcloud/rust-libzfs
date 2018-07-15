@@ -13,6 +13,9 @@ use std::process::{Command, Stdio};
 fn main() {
     let out_file = env::current_dir().unwrap().join("src").join("bindings.rs");
 
+    // necessary for CI machines to find their libclang install
+    env::set_var("LIBCLANG_PATH", "/opt/llvm-5.0.0/lib64");
+
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
         .constified_enum_module("boolean_t")
@@ -112,7 +115,7 @@ fn main() {
                 bindings.clang_arg(flag)
             })
         // include directory for zfsonlinux/zfs master branch
-            .clang_arg("-I/usr/src/zfs-0.7.0/include/")
+            .clang_arg("-I/usr/src/zfs-0.7.0/include")
     };
 
     let bindings = bindings.generate().expect("Unable to generate bindings");
