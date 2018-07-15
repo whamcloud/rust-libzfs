@@ -13,9 +13,6 @@ use std::process::{Command, Stdio};
 fn main() {
     let out_file = env::current_dir().unwrap().join("src").join("bindings.rs");
 
-    let libzfs = pkg_config::Config::new().probe("libzfs").unwrap();
-    println!("cargo:rustc-link-lib=zpool");
-
     let bindings = bindgen::Builder::default()
         .header("wrapper.h")
         .constified_enum_module("boolean_t")
@@ -92,17 +89,35 @@ fn main() {
         .whitelist_function("zfs_validate_name")
         .whitelist_function("zprop_free_list");
 
-    let bindings = list_gcc_include_paths()
-        .chain(libzfs.include_paths)
-        .fold(bindings, |bindings, include_path| {
-              let flag = format!("-I{}", include_path.to_string_lossy());
-              bindings.clang_arg(flag)
-        })
-    // include directory for zfsonlinux/zfs master branch
-        .clang_arg("-I/usr/src/zfs-0.7.0/include/")
+    let bindings = if cfg!(target_os = "freebsd") {
+        println!("cargo:rustc-link-lib=zfs");
+        // a subset of include paths in cddl/sbin/zfs/Makefile
+        bindings
+            .clang_arg("-I/usr/src/cddl/compat/opensolaris/include")
+            .clang_arg("-I/usr/src/cddl/compat/opensolaris/lib/libumem")
+            .clang_arg("-I/usr/src/cddl/contrib/opensolaris/head")
+            .clang_arg("-I/usr/src/cddl/contrib/opensolaris/lib/libuutil/common")
+            .clang_arg("-I/usr/src/cddl/contrib/opensolaris/lib/libzfs/common")
+            .clang_arg("-I/usr/src/cddl/contrib/opensolaris/lib/libzpool/common")
+            .clang_arg("-I/usr/src/sys/cddl/compat/opensolaris")
+            .clang_arg("-I/usr/src/sys/cddl/contrib/opensolaris/uts/common")
+            .clang_arg("-I/usr/src/sys/cddl/contrib/opensolaris/uts/common/fs/zfs")
+            .clang_arg("-I/usr/src/sys/cddl/contrib/opensolaris/common/zfs")
+    } else {
+        let libzfs = pkg_config::Config::new().probe("libzfs").unwrap();
+        list_gcc_include_paths()
+            .chain(libzfs.include_paths)
+            .fold(bindings, |bindings, include_path| {
+                let flag = format!("-I{}", include_path.to_string_lossy());
+                bindings.clang_arg(flag)
+            })
+        // include directory for zfsonlinux/zfs master branch
+            .clang_arg("-I/usr/src/zfs-0.7.0/include/")
+    };
 
-        .generate()
-        .expect("Unable to generate bindings");
+    let bindings = bindings.generate().expect("Unable to generate bindings");
+
+    println!("cargo:rustc-link-lib=zpool");
 
     // Write bindings to src.
     bindings
