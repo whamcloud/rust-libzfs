@@ -56,7 +56,7 @@ impl Zpool {
                 raw,
                 sys::ZPOOL_MAXPROPLEN as usize,
                 ptr::null_mut(),
-                sys::boolean::B_FALSE,
+                sys::boolean_t::B_FALSE,
             );
 
             let out = CString::from_raw(raw);
@@ -141,7 +141,7 @@ impl Zpool {
         }
     }
     pub fn disable_datasets(&self) -> Result<()> {
-        let code = unsafe { sys::zpool_disable_datasets(self.raw, sys::boolean::B_FALSE) };
+        let code = unsafe { sys::zpool_disable_datasets(self.raw, sys::boolean_t::B_FALSE) };
 
         match code {
             0 => Ok(()),
@@ -149,7 +149,7 @@ impl Zpool {
         }
     }
     pub fn export(&self) -> Result<()> {
-        let code = unsafe { sys::zpool_export(self.raw, sys::boolean::B_FALSE, ptr::null_mut()) };
+        let code = unsafe { sys::zpool_export(self.raw, sys::boolean_t::B_FALSE, ptr::null_mut()) };
 
         match code {
             0 => Ok(()),

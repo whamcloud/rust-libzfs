@@ -47,8 +47,8 @@ impl Zfs {
             sys::zfs_expand_proplist(
                 self.raw,
                 &mut prop_list_ptr,
-                sys::boolean::B_TRUE,
-                sys::boolean::B_TRUE,
+                sys::boolean_t::B_TRUE,
+                sys::boolean_t::B_TRUE,
             )
         };
 
@@ -62,7 +62,7 @@ impl Zfs {
         let pl = self.prop_list()?;
 
         let xs = pl.filter_map(|x: ZpropItem| match x.prop() {
-            sys::zfs_prop_t_ZFS_PROP_BAD => self.user_props()
+            sys::zfs_prop_t_ZPROP_INVAL => self.user_props()
                 .lookup_nv_list(x.user_prop())
                 .and_then(|nv| nv.lookup_string(sys::zprop_value()))
                 .map(|v| ZProp {
@@ -82,7 +82,7 @@ impl Zfs {
                         ptr::null_mut(),
                         ptr::null_mut(),
                         0,
-                        sys::boolean::B_TRUE,
+                        sys::boolean_t::B_TRUE,
                     )
                 };
 

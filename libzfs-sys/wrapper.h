@@ -4,4 +4,6 @@
 
 #define _LARGEFILE64_SOURCE
 
+#define NEED_SOLARIS_BOOLEAN
+
 #include <libzfs_impl.h>
