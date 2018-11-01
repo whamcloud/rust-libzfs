@@ -1,13 +1,13 @@
-extern crate nvpair_sys as nv_sys;
 extern crate cstr_argument;
+extern crate nvpair_sys as nv_sys;
 
 use self::cstr_argument::CStrArgument;
-use std::mem;
-use std::io;
-use std::ptr;
+pub use foreign_types::{ForeignType, ForeignTypeRef, Opaque};
 use std::ffi;
+use std::io;
+use std::mem;
 use std::os::raw::{c_int, c_uint};
-pub use foreign_types::{Opaque, ForeignTypeRef, ForeignType};
+use std::ptr;
 
 pub trait NvEncode {
     fn insert<S: CStrArgument>(&self, S, &mut NvListRef) -> io::Result<()>;
@@ -211,7 +211,7 @@ impl NvListRef {
         v != nv_sys::boolean::B_FALSE
     }
 
-    /* 
+    /*
     // not allowed because `pair` is borrowed from `self`. Need to fiddle around so that we can
     // check:
     //  - `pair` is from `self`
@@ -290,7 +290,6 @@ impl NvListRef {
             Ok(n)
         }
     }
-
 
     pub fn lookup_nv_list_array<S: CStrArgument>(&self, name: S) -> io::Result<Vec<NvList>> {
         let name = name.into_cstr();

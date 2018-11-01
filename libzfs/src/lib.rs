@@ -16,8 +16,8 @@ extern crate lazy_static;
 
 extern crate libzfs_sys as sys;
 
-mod nvpair;
 mod libzfs_error;
+mod nvpair;
 
 pub mod vdev;
 pub use vdev::VDev;

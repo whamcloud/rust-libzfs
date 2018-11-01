@@ -4,9 +4,9 @@
 
 extern crate libzfs_sys as sys;
 
+use libzfs_error::{LibZfsError, Result};
 use nvpair;
 use std::ffi::CStr;
-use libzfs_error::{LibZfsError, Result};
 use std::io::{Error, ErrorKind};
 
 /// Represents vdevs
@@ -90,12 +90,12 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
     }
 
     fn lookup_guid(tree: &nvpair::NvList) -> Option<u64> {
-        tree.lookup_uint64(sys::zpool_config_guid())
-            .ok()
+        tree.lookup_uint64(sys::zpool_config_guid()).ok()
     }
 
     fn lookup_state(tree: &nvpair::NvList) -> Result<String> {
-        let vdev_stats = tree.lookup_uint64_array(sys::zpool_config_vdev_stats())
+        let vdev_stats = tree
+            .lookup_uint64_array(sys::zpool_config_vdev_stats())
             .map(sys::to_vdev_stat)?;
 
         let state = unsafe {
@@ -116,10 +116,13 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
 
     match x {
         x if x == sys::VDEV_TYPE_DISK => {
-            let path = tree.lookup_string(sys::zpool_config_path())?.into_string()?;
+            let path = tree
+                .lookup_string(sys::zpool_config_path())?
+                .into_string()?;
             let dev_id = lookup_tree_str(tree, sys::zpool_config_dev_id())?;
             let phys_path = lookup_tree_str(tree, sys::zpool_config_phys_path())?;
-            let whole_disk = tree.lookup_uint64(sys::zpool_config_whole_disk())
+            let whole_disk = tree
+                .lookup_uint64(sys::zpool_config_whole_disk())
                 .map(|x| x == 1)
                 .ok();
 
@@ -134,7 +137,9 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
             })
         }
         x if x == sys::VDEV_TYPE_FILE => {
-            let path = tree.lookup_string(sys::zpool_config_path())?.into_string()?;
+            let path = tree
+                .lookup_string(sys::zpool_config_path())?
+                .into_string()?;
 
             Ok(VDev::File {
                 guid: lookup_guid(tree),
@@ -145,7 +150,8 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
         }
         x if x == sys::VDEV_TYPE_MIRROR => {
             let children = get_children(tree)?;
-            let is_log = tree.lookup_uint64(sys::zpool_config_is_log())
+            let is_log = tree
+                .lookup_uint64(sys::zpool_config_is_log())
                 .map(|x| x == 1)
                 .ok();
 

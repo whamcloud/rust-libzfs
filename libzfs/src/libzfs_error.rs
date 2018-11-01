@@ -2,9 +2,9 @@
 // Use of this source code is governed by a MIT-style
 // license that can be found in the LICENSE file.
 
-use std::{error, fmt, result, str};
-use std::io::Error;
 use std::ffi::IntoStringError;
+use std::io::Error;
+use std::{error, fmt, result, str};
 
 #[derive(Debug)]
 pub enum LibZfsError {

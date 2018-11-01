@@ -1,7 +1,7 @@
 [package]
 name = "libzfs"
 version = "0.6.7"
-authors = ["IML Team <iml@intel.com>"]
+authors = ["IML Team <iml@whamcloud.com>"]
 description = "Rust wrapper around libzfs-sys"
 license = "MIT"
 
@@ -11,5 +11,5 @@ nvpair-sys = "0.1"
 serde = "1.0"
 serde_derive = "1.0"
 foreign-types = "0.3"
-cstr-argument = "0.0"
-lazy_static = "1.0"
+cstr-argument = "0.1"
+lazy_static = "1.1"

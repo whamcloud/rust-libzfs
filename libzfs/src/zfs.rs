@@ -4,11 +4,11 @@
 
 extern crate libzfs_sys as sys;
 
+use libzfs_error::{LibZfsError, Result};
+use nvpair;
+use std::ffi::{CStr, CString};
 use std::io::Error;
 use std::ptr;
-use std::ffi::{CStr, CString};
-use nvpair;
-use libzfs_error::{LibZfsError, Result};
 use zprop_list::{ZProp, ZpropItem, ZpropList};
 
 #[derive(Debug, PartialEq)]
@@ -24,7 +24,7 @@ impl Zfs {
         let s = unsafe { CStr::from_ptr(sys::zfs_get_name(self.raw)) };
         s.to_owned()
     }
-    pub fn user_props(&self) -> &mut nvpair::NvListRef {
+    pub fn user_props(&self) -> &nvpair::NvListRef {
         unsafe {
             let x = sys::zfs_get_user_props(self.raw);
             nvpair::NvListRef::from_mut_ptr(x)
@@ -61,45 +61,46 @@ impl Zfs {
         let buff_size = 319;
         let pl = self.prop_list()?;
 
-        let xs = pl.filter_map(|x: ZpropItem| match x.prop() {
-            sys::zfs_prop_t_ZFS_PROP_BAD => self.user_props()
-                .lookup_nv_list(x.user_prop())
-                .and_then(|nv| nv.lookup_string(sys::zprop_value()))
-                .map(|v| ZProp {
-                    name: x.user_prop().to_owned().into_string().unwrap(),
-                    value: v.into_string().unwrap(),
-                })
-                .ok(),
-            y => {
-                let raw = CString::new("0".repeat(buff_size)).unwrap().into_raw();
+        let xs = pl
+            .filter_map(|x: ZpropItem| match x.prop() {
+                sys::zfs_prop_t_ZFS_PROP_BAD => self
+                    .user_props()
+                    .lookup_nv_list(x.user_prop())
+                    .and_then(|nv| nv.lookup_string(sys::zprop_value()))
+                    .map(|v| ZProp {
+                        name: x.user_prop().to_owned().into_string().unwrap(),
+                        value: v.into_string().unwrap(),
+                    }).ok(),
+                y => {
+                    let raw = CString::new("0".repeat(buff_size)).unwrap().into_raw();
 
-                let ret = unsafe {
-                    sys::zfs_prop_get(
-                        self.raw,
-                        y,
-                        raw,
-                        buff_size,
-                        ptr::null_mut(),
-                        ptr::null_mut(),
-                        0,
-                        sys::boolean::B_TRUE,
-                    )
-                };
+                    let ret = unsafe {
+                        sys::zfs_prop_get(
+                            self.raw,
+                            y,
+                            raw,
+                            buff_size,
+                            ptr::null_mut(),
+                            ptr::null_mut(),
+                            0,
+                            sys::boolean::B_TRUE,
+                        )
+                    };
 
-                let out = unsafe { CString::from_raw(raw) };
+                    let out = unsafe { CString::from_raw(raw) };
 
-                if ret == 0 {
-                    let name = unsafe { CStr::from_ptr(sys::zfs_prop_to_name(x.prop())) };
+                    if ret == 0 {
+                        let name = unsafe { CStr::from_ptr(sys::zfs_prop_to_name(x.prop())) };
 
-                    Some(ZProp {
-                        name: name.to_string_lossy().into_owned(),
-                        value: out.into_string().unwrap(),
-                    })
-                } else {
-                    None
+                        Some(ZProp {
+                            name: name.to_string_lossy().into_owned(),
+                            value: out.into_string().unwrap(),
+                        })
+                    } else {
+                        None
+                    }
                 }
-            }
-        }).collect::<Vec<_>>();
+            }).collect::<Vec<_>>();
 
         Ok(xs)
     }
@@ -114,11 +115,11 @@ impl Drop for Zfs {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use libzfs::Libzfs;
+    use std::ffi::CString;
     use std::panic;
     use std::str;
     use zprop_list::ZProp;
-    use libzfs::Libzfs;
-    use std::ffi::CString;
 
     fn zfs_by_name<F: Fn(&Zfs) -> ()>(name: &str, f: F) -> ()
     where
@@ -131,7 +132,8 @@ mod tests {
         z.import_all(&pools_to_import)
             .expect("Could not import pools");
 
-        let ds = z.dataset_by_name(name)
+        let ds = z
+            .dataset_by_name(name)
             .expect("could not get dataset by name");
 
         let result = panic::catch_unwind(|| {
@@ -168,8 +170,8 @@ mod tests {
                         "creation".to_owned(),
                         "guid".to_owned(),
                         "createtxg".to_owned()
-                    ].contains(&x.name))
-                    .collect::<Vec<ZProp>>(),
+                    ]
+                        .contains(&x.name)).collect::<Vec<ZProp>>(),
                 vec![
                     ZProp {
                         name: "name".to_owned(),

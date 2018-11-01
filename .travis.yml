@@ -5,35 +5,32 @@ services:
 jobs:
     include:
         - stage: test
-          env: Type='bindgen test'
+          name: "bindgen test"
           script:
               - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
               - docker exec -i libzfs bash -c 'cd /rust-libzfs/node-libzfs && cargo build'
               - docker exec -i libzfs bash -c 'cd /rust-libzfs/libzfs-sys && cargo test bindgen_test_layout'
         - stage: test
-          env: Type='mock build'
+          name: "mock build"
           language: node_js
           node_js: "10"
           script:
               - cd node-libzfs
               - npm run mock
-        - stage: deploy
-          env: Type='libzfs-sys'
-          if: branch =~ ^v.+libzfs-sys$
+        - stage: deploy-libzfs-sys
+          name: "libzfs-sys"
           script:
               - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
               - docker exec -i libzfs bash -c "cd /rust-libzfs/libzfs-sys && cargo package && cargo publish --token $CARGO_TOKEN"
-        - stage: deploy
-          env: Type='libzfs'
-          if: branch =~ ^v.+\dlibzfs$
+        - stage: deploy-libzfs
+          name: "libzfs"
           script:
               - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
               - docker exec -i libzfs bash -c "cd /rust-libzfs/libzfs && cargo package && cargo publish --token $CARGO_TOKEN"
-        - stage: deploy
-          env: Type='@iml/node-libzfs'
+        - stage: deploy-node-libzfs
+          name: "@iml/node-libzfs"
           language: node_js
           node_js: "10"
-          if: branch =~ ^v.+node-libzfs$
           before_deploy:
               - cd node-libzfs
           deploy:
@@ -43,9 +40,8 @@ jobs:
               skip_cleanup: true
               on:
                   tags: true
-        - stage: deploy
-          if: branch =~ ^v\d+\.\d+\.\d+-.+node-libzfs$
-          env: Type='Copr deploy'
+        - stage: deploy-copr
+          name: "Copr deploy"
           before_deploy:
               - include/travis/copr-deploy.sh prepare
           deploy:
@@ -54,3 +50,13 @@ jobs:
               script: ./travis_wait "./include/travis/run_in_centos7_docker.sh ./include/travis/copr-deploy.sh build"
               on:
                   all_branches: true
+stages:
+    - test
+    - name: deploy-libzfs-sys
+      if: branch =~ ^v.+libzfs-sys$
+    - name: deploy-libzfs
+      if: branch =~ ^v.+\dlibzfs$
+    - name: deploy-node-libzfs
+      if: branch =~ ^v.+node-libzfs$
+    - name: deploy-copr
+      if: branch =~ ^v\d+\.\d+\.\d+-.+node-libzfs$

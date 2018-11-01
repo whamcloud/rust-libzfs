@@ -4,14 +4,14 @@
 
 extern crate libzfs_sys as sys;
 
-use std::ptr;
+use libzfs_error::{LibZfsError, Result};
 use nvpair;
-use zfs::Zfs;
+use std::ffi::{CStr, CString};
 use std::io::Error;
 use std::os::raw::{c_int, c_void};
-use std::ffi::{CStr, CString};
-use libzfs_error::{LibZfsError, Result};
+use std::ptr;
 use vdev::{enumerate_vdev_tree, VDev};
+use zfs::Zfs;
 
 #[derive(Debug, PartialEq)]
 pub struct Zpool {
@@ -79,7 +79,9 @@ impl Zpool {
         Ok(s)
     }
     pub fn hostid(&self) -> Result<u64> {
-        let s = self.get_config().lookup_uint64(sys::zpool_config_hostid())?;
+        let s = self
+            .get_config()
+            .lookup_uint64(sys::zpool_config_hostid())?;
 
         Ok(s)
     }
@@ -95,7 +97,7 @@ impl Zpool {
     pub fn read_only(&self) -> bool {
         self.prop_int(sys::zpool_prop_t::ZPOOL_PROP_READONLY) != 0
     }
-    pub fn get_config(&self) -> &mut nvpair::NvListRef {
+    pub fn get_config(&self) -> &nvpair::NvListRef {
         unsafe {
             let x = sys::zpool_get_config(self.raw, ptr::null_mut());
             assert!(!x.is_null(), "config pointer is null");
@@ -167,10 +169,10 @@ impl Drop for Zpool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::panic;
-    use std::str;
     use libzfs::Libzfs;
     use std::ffi::CString;
+    use std::panic;
+    use std::str;
 
     fn test_pools<F: Fn(&Vec<Zpool>) -> ()>(f: F) -> ()
     where
@@ -183,7 +185,8 @@ mod tests {
         z.import_all(&pools_to_import)
             .expect("could not import pools");
 
-        let pools = z.get_imported_pools()
+        let pools = z
+            .get_imported_pools()
             .expect("could not fetch imported pools");
 
         let result = panic::catch_unwind(|| {
@@ -198,7 +201,8 @@ mod tests {
         F: panic::RefUnwindSafe,
     {
         test_pools(|xs| {
-            let x = xs.iter()
+            let x = xs
+                .iter()
                 .find(|x| x.name() == CString::new(name).unwrap())
                 .expect("did not find test pool");
 
@@ -230,7 +234,7 @@ mod tests {
 
     #[test]
     fn get_pool_size() {
-        pool_by_name("test", |p| assert_eq!(p.size(), 83886080))
+        pool_by_name("test", |p| assert_eq!(p.size(), 83_886_080))
     }
 
     #[test]
