@@ -15,7 +15,7 @@ enabled=1
 
 [zfs]
 name=ZFS on Linux for EL7 - dkms
-baseurl=http://download.zfsonlinux.org/epel/7.4/$basearch/
+baseurl=http://download.zfsonlinux.org/epel/7.5/$basearch/
 enabled=1
 .
 w

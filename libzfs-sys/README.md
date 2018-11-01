@@ -1,6 +1,6 @@
 # libzfs-sys
 
-Bindings to libzfs 0.7.9. Uses [bindgen](https://github.com/rust-lang-nursery/rust-bindgen).
+Bindings to libzfs 0.7.11. Uses [bindgen](https://github.com/rust-lang-nursery/rust-bindgen).
 
 ## Overview
 
@@ -9,10 +9,10 @@ to the src dir. To rebuild bindings run `cargo build`.
 
 ## ZFS version
 
-These bindings were compiled against ZFS 0.7.9. As `libzfs` is not a stable interface,
+These bindings were compiled against ZFS 0.7.11. As `libzfs` is not a stable interface,
 they should only be used against this version.
 
 ## OS
 
-These bindings were compiled on Centos 7.4.x. They are likely to work against other
+These bindings were compiled on Centos 7.5.x. They are likely to work against other
 OS, but make sure to test first.

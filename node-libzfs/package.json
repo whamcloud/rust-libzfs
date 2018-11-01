@@ -8,12 +8,12 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/intel-hpdd/node-libzfs"
+        "url": "https://github.com/whamcloud/node-libzfs"
     },
     "author": "IML Team",
     "license": "MIT",
     "dependencies": {
-        "neon-cli": "^0.1.22"
+        "neon-cli": "0.1.23"
     },
     "scripts": {
         "premock": "docker run -dit --cap-add=SYS_ADMIN --privileged --name mock intelhpdd/mock /usr/sbin/init",
