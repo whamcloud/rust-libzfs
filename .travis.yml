@@ -53,10 +53,10 @@ jobs:
 stages:
     - test
     - name: deploy-libzfs-sys
-      if: branch =~ ^v.+libzfs-sys$
+      if: branch =~ ^v\d+\.\d+\.\d+libzfs-sys$
     - name: deploy-libzfs
-      if: branch =~ ^v.+\dlibzfs$
+      if: branch =~ ^v\d+\.\d+\.\d+libzfs$
     - name: deploy-node-libzfs
-      if: branch =~ ^v.+node-libzfs$
+      if: branch =~ ^v\d+\.\d+\.\d+node-libzfs$
     - name: deploy-copr
       if: branch =~ ^v\d+\.\d+\.\d+-.+node-libzfs$
