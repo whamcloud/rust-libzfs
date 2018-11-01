@@ -12,7 +12,13 @@ Vagrant.configure('2') do |config|
 
   config.vm.synced_folder '.', '/vagrant',
                           type: 'rsync',
-                          rsync__exclude: ['.git/', 'target/']
+                          rsync__exclude: [
+                            '.git/',
+                            'target/',
+                            'include/',
+                            'node-libzfs/target',
+                            'node-libzfs/node_modules'
+                          ]
 
   config.vm.provider 'virtualbox' do |vb|
     vb.name = 'libzfs'
