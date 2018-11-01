@@ -1,6 +1,6 @@
 %define base_name node-libzfs
 Name:       iml-%{base_name}
-Version:    0.1.18
+Version:    0.1.19
 Release:    1%{?dist}
 Summary:    Implements a binding layer from node to rust-libzfs
 License:    MIT
@@ -52,6 +52,9 @@ rm -rf %{buildroot}
 %{nodejs_sitearch}/@iml/node-libzfs/package.json
 
 %changelog
+* Thu Nov 01 2018 Joe Grund <jgrund@whamcloud.com> - 0.1.19-1
+- Bump to ZFS 0.7.11
+
 * Tue May 15 2018 Joe Grund <joe.grund@intel.com> - 0.1.18-1
 - Bump to ZFS 0.7.9
 
