@@ -1,75 +1,56 @@
 sudo: required
 language: generic
 services:
-  - docker
-addons:
-  apt:
-    update: true
+    - docker
 jobs:
-  include:
-    - stage: test
-      env: Type='bindgen test'
-      script:
-        - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw intelhpdd/libzfs
-        - docker exec -i libzfs bash -c 'cd /rust-libzfs/node-libzfs && cargo build'
-        - docker exec -i libzfs bash -c 'cd /rust-libzfs/libzfs-sys && cargo test bindgen_test_layout'
-    - stage: test
-      env: Type='mock build'
-      language: node_js
-      node_js: 8
-      script:
-        - cd node-libzfs
-        - npm run mock
-    - stage: test
-      env: Type='test Fable.Import.NodeLibzfs'
-      script:
-        - docker run -d -it --name libzfs-dotnet -v $(pwd):/rust-libzfs:rw intelhpdd/libzfs-dotnet
-        - docker exec -i libzfs-dotnet bash -c "cd /rust-libzfs/Fable.Import.NodeLibzfs && dotnet restore && npm i --ignore-scripts && dotnet fable npm-test"
-    - stage: deploy
-      env: Type='libzfs-sys'
-      if: branch =~ ^v.+libzfs-sys$
-      script:
-        - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw intelhpdd/libzfs
-        - docker exec -i libzfs bash -c "cd /rust-libzfs/libzfs-sys && cargo package && cargo publish --token $CARGO_TOKEN"
-    - stage: deploy
-      env: Type='libzfs'
-      if: branch =~ ^v.+\dlibzfs$
-      script:
-        - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw intelhpdd/libzfs
-        - docker exec -i libzfs bash -c "cd /rust-libzfs/libzfs && cargo package && cargo publish --token $CARGO_TOKEN"
-    - stage: deploy
-      env: Type='@iml/node-libzfs'
-      language: node_js
-      node_js: 8
-      if: branch =~ ^v.+node-libzfs$
-      before_deploy:
-        - cd node-libzfs
-      deploy:
-        provider: npm
-        email: "$NPM_EMAIL"
-        api_key: "$NPM_TOKEN"
-        skip_cleanup: true
-        on:
-          tags: true
-    - stage: deploy
-      env: Type='Fable.Import.NodeLibzfs'
-      language: csharp
-      dotnet: 2.1.4
-      mono: latest
-      if: branch =~ ^v.+fable-import-nodelibzfs$
-      script:
-          - cd Fable.Import.NodeLibzfs/fable
-          - dotnet pack
-          - cd bin/Debug
-          - dotnet nuget push *.nupkg -s https://api.nuget.org/v3/index.json -k $NUGET_KEY
-    - stage: deploy
-      if: branch =~ ^v\d+\.\d+\.\d+-.+node-libzfs$
-      env: Type='Copr deploy'
-      before_deploy:
-      - include/travis/copr-deploy.sh prepare
-      deploy:
-        skip_cleanup: true
-        provider: script
-        script: ./travis_wait "./include/travis/run_in_centos7_docker.sh ./include/travis/copr-deploy.sh build"
-        on:
-          all_branches: true
+    include:
+        - stage: test
+          env: Type='bindgen test'
+          script:
+              - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
+              - docker exec -i libzfs bash -c 'cd /rust-libzfs/node-libzfs && cargo build'
+              - docker exec -i libzfs bash -c 'cd /rust-libzfs/libzfs-sys && cargo test bindgen_test_layout'
+        - stage: test
+          env: Type='mock build'
+          language: node_js
+          node_js: "10"
+          script:
+              - cd node-libzfs
+              - npm run mock
+        - stage: deploy
+          env: Type='libzfs-sys'
+          if: branch =~ ^v.+libzfs-sys$
+          script:
+              - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
+              - docker exec -i libzfs bash -c "cd /rust-libzfs/libzfs-sys && cargo package && cargo publish --token $CARGO_TOKEN"
+        - stage: deploy
+          env: Type='libzfs'
+          if: branch =~ ^v.+\dlibzfs$
+          script:
+              - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
+              - docker exec -i libzfs bash -c "cd /rust-libzfs/libzfs && cargo package && cargo publish --token $CARGO_TOKEN"
+        - stage: deploy
+          env: Type='@iml/node-libzfs'
+          language: node_js
+          node_js: "10"
+          if: branch =~ ^v.+node-libzfs$
+          before_deploy:
+              - cd node-libzfs
+          deploy:
+              provider: npm
+              email: "$NPM_EMAIL"
+              api_key: "$NPM_TOKEN"
+              skip_cleanup: true
+              on:
+                  tags: true
+        - stage: deploy
+          if: branch =~ ^v\d+\.\d+\.\d+-.+node-libzfs$
+          env: Type='Copr deploy'
+          before_deploy:
+              - include/travis/copr-deploy.sh prepare
+          deploy:
+              skip_cleanup: true
+              provider: script
+              script: ./travis_wait "./include/travis/run_in_centos7_docker.sh ./include/travis/copr-deploy.sh build"
+              on:
+                  all_branches: true
