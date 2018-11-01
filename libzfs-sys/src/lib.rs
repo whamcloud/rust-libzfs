@@ -15,12 +15,12 @@
 //! to the src dir. To rebuild bindings run `cargo build`.
 //!
 //! ## ZFS version
-//! These bindings were compiled against ZFS 0.7.9. As `libzfs` is not a stable interface,
+//! These bindings were compiled against ZFS 0.7.11. As `libzfs` is not a stable interface,
 //! they should only be used against this version.
 //!
 //! ## OS
 //!
-//! These bindings were compiled on Centos 7.4.x. They are likely to work against other
+//! These bindings were compiled on Centos 7.5.x. They are likely to work against other
 //! OS, but make sure to test first.
 //!
 
@@ -133,10 +133,10 @@ pub fn to_vdev_aux(n: u32) -> Option<vdev_aux_t> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::ptr;
+    use std::ffi::{CStr, CString};
     use std::mem;
     use std::os::raw::{c_int, c_void};
-    use std::ffi::{CStr, CString};
+    use std::ptr;
 
     fn create_libzfs_handle() -> *mut libzfs_handle_t {
         unsafe { libzfs_init() }

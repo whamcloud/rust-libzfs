@@ -10,11 +10,11 @@ extern crate neon_serde;
 #[macro_use]
 extern crate serde_derive;
 
-use std::ffi::CString;
-use neon::vm::{Call, JsResult, Throw};
-use neon::js::{JsNull, JsString, JsValue};
-use neon::js::error::{JsError, Kind};
 use libzfs::{Libzfs, VDev, ZProp, Zfs, Zpool};
+use neon::js::error::{JsError, Kind};
+use neon::js::{JsNull, JsString, JsValue};
+use neon::vm::{Call, JsResult, Throw};
+use std::ffi::CString;
 
 #[derive(Serialize, Debug, Deserialize)]
 struct Pool {
@@ -40,7 +40,8 @@ struct JsDataset {
 }
 
 fn convert_to_js_dataset(x: &Zfs) -> Result<JsDataset, Throw> {
-    let props = x.props()
+    let props = x
+        .props()
         .or_else(|_| JsError::throw(Kind::Error, "Could not enumerate props"))?;
 
     let guid = props.iter().find(|x| x.name == "guid").map_or_else(
@@ -63,18 +64,21 @@ fn c_string_to_string(x: CString) -> Result<String, Throw> {
 }
 
 fn convert_to_js_pool(p: &Zpool) -> Result<Pool, Throw> {
-    let xs = p.datasets()
+    let xs = p
+        .datasets()
         .or_else(|_| JsError::throw(Kind::Error, "Could not fetch datasets"))?
         .iter()
         .map(|x| convert_to_js_dataset(x))
         .collect::<Result<Vec<JsDataset>, Throw>>()?;
 
-    let hostname = p.hostname()
+    let hostname = p
+        .hostname()
         .or_else(|_| JsError::throw(Kind::Error, "Could not get hostname"))?;
 
     let hostid = p.hostid().ok();
 
-    let health = p.health()
+    let health = p
+        .health()
         .or_else(|_| JsError::throw(Kind::Error, "Could not get health"))?;
 
     Ok(Pool {
@@ -87,7 +91,8 @@ fn convert_to_js_pool(p: &Zpool) -> Result<Pool, Throw> {
         readonly: p.read_only(),
         size: p.size().to_string(),
         props: vec![],
-        vdev: p.vdev_tree()
+        vdev: p
+            .vdev_tree()
             .or_else(|_| JsError::throw(Kind::Error, "Could not enumerate vdev tree"))?,
         datasets: xs,
     })
@@ -97,7 +102,8 @@ fn get_pool_by_name(call: Call) -> JsResult<JsValue> {
     let scope = call.scope;
     let mut libzfs = Libzfs::new();
 
-    let pool_name = call.arguments
+    let pool_name = call
+        .arguments
         .require(scope, 0)?
         .check::<JsString>()?
         .value();
@@ -120,7 +126,8 @@ fn get_dataset_by_name(call: Call) -> JsResult<JsValue> {
     let scope = call.scope;
     let mut libzfs = Libzfs::new();
 
-    let ds_name = call.arguments
+    let ds_name = call
+        .arguments
         .require(scope, 0)?
         .check::<JsString>()?
         .value();

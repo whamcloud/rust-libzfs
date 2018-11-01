@@ -5,7 +5,7 @@ Release:    1%{?dist}
 Summary:    Implements a binding layer from node to rust-libzfs
 License:    MIT
 Group:      System Environment/Libraries
-URL:        https://github.com/intel-hpdd/rust-libzfs/tree/master/%{base_name}
+URL:        https://github.com/whamcloud/rust-libzfs/tree/master/%{base_name}
 # Forcing local source because rpkg in copr does not seem to have a way
 # to build source in the same way a package manager would.
 Source0:    %{name}-%{version}.tgz
@@ -27,7 +27,7 @@ Implements a binding layer from node to rust-libzfs.
 
 %prep
 %setup
-npm i neon-cli@0.1.22
+npm i neon-cli@0.1.23
 %nodejs_fixdep -r neon-cli
 
 %build
