@@ -1,9 +1,0 @@
-source https://www.nuget.org/api/v2
-storage:none
-
-clitool dotnet-fable
-nuget Fable.Core
-nuget Thoth.Json
-nuget Fable.Import.Jest
-
-
