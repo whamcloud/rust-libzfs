@@ -100,12 +100,10 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
 
         let state = unsafe {
             let s = sys::zpool_state_to_name(
-                sys::to_vdev_state(vdev_stats.vs_state as u32).ok_or(Error::new(
-                    ErrorKind::NotFound,
-                    "vs_state not in enum range",
-                ))?,
+                sys::to_vdev_state(vdev_stats.vs_state as u32)
+                    .ok_or_else(|| Error::new(ErrorKind::NotFound, "vs_state not in enum range"))?,
                 sys::to_vdev_aux(vdev_stats.vs_aux as u32)
-                    .ok_or(Error::new(ErrorKind::NotFound, "vs_aux not in enum range"))?,
+                    .ok_or_else(|| Error::new(ErrorKind::NotFound, "vs_aux not in enum range"))?,
             );
 
             CStr::from_ptr(s)
