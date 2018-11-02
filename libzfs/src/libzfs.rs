@@ -4,16 +4,16 @@
 
 extern crate libzfs_sys as sys;
 
-use std::io::Error;
+use libzfs_error::{LibZfsError, Result};
 use nvpair;
 use nvpair::ForeignType;
-use zpool::Zpool;
-use zfs::Zfs;
-use std::ptr;
-use libzfs_error::{LibZfsError, Result};
 use std::ffi::CString;
+use std::io::Error;
 use std::os::raw::{c_int, c_void};
+use std::ptr;
 use std::sync::Mutex;
+use zfs::Zfs;
+use zpool::Zpool;
 
 lazy_static! {
     pub static ref LOCK: Mutex<()> = Mutex::new(());
@@ -21,6 +21,12 @@ lazy_static! {
 
 pub struct Libzfs {
     raw: *mut sys::libzfs_handle_t,
+}
+
+impl Default for Libzfs {
+    fn default() -> Self {
+        Libzfs::new()
+    }
 }
 
 impl Libzfs {
@@ -85,8 +91,7 @@ impl Libzfs {
                     0 => Ok(()),
                     x => Err(LibZfsError::Io(Error::from_raw_os_error(x))),
                 }
-            })
-            .collect()
+            }).collect()
     }
     pub fn export_all(&mut self, pools: &[Zpool]) -> Result<Vec<()>> {
         pools
