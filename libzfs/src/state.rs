@@ -18,7 +18,7 @@ use zpool::Zpool;
 use zprop_list::ZProp;
 
 /// A Pool at a point in time
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Pool {
     pub name: String,
     pub guid: String,
@@ -34,7 +34,7 @@ pub struct Pool {
 }
 
 /// A Dataset at a point in time
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Dataset {
     pub name: String,
     pub guid: String,
