@@ -33,3 +33,6 @@ pub use zpool::Zpool;
 
 pub mod libzfs;
 pub use libzfs::Libzfs;
+
+pub mod state;
+pub use state::*;
