@@ -1,5 +1,7 @@
 #!/bin/bash -xe
 
+sed -i $'1i config_opts[\'use_nspawn\'] = False' /etc/mock/default.cfg
+
 ed <<"EOF" /etc/mock/default.cfg
 $i
 
