@@ -1,6 +1,6 @@
 [package]
 name = "libzfs"
-version = "0.6.8"
+version = "0.6.9"
 authors = ["IML Team <iml@whamcloud.com>"]
 description = "Rust wrapper around libzfs-sys"
 license = "MIT"
