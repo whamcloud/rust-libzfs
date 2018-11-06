@@ -11,7 +11,7 @@ use std::io::{Error, ErrorKind};
 
 /// Represents vdevs
 /// The enum starts at Root and is recursive.
-#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Clone)]
 pub enum VDev {
     Mirror {
         children: Vec<VDev>,

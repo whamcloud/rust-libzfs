@@ -52,7 +52,7 @@ impl ZpropItem {
     }
 }
 
-#[derive(Debug, PartialEq, Deserialize, Serialize, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Deserialize, Serialize, Clone)]
 pub struct ZProp {
     pub name: String,
     pub value: String,
