@@ -11,7 +11,7 @@
 use std::io;
 
 use libzfs::Libzfs;
-use libzfs_error::Result;
+use libzfs_error::{LibZfsError, Result};
 use vdev::VDev;
 use zfs::Zfs;
 use zpool::Zpool;
@@ -21,7 +21,7 @@ use zprop_list::ZProp;
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Pool {
     pub name: String,
-    pub guid: String,
+    pub guid: u64,
     pub health: String,
     pub hostname: String,
     pub hostid: Option<u64>,
@@ -79,7 +79,7 @@ fn convert_to_js_pool(p: &Zpool) -> Result<Pool> {
     Ok(Pool {
         name: p.name().into_string()?,
         health: health.into_string()?,
-        guid: p.guid().to_string(),
+        guid: p.guid(),
         hostname: hostname.into_string()?,
         hostid,
         state: p.state_name().into_string()?,
@@ -92,25 +92,37 @@ fn convert_to_js_pool(p: &Zpool) -> Result<Pool> {
 }
 
 /// Given a pool name, try to find it and convert it to a `Pool`.
-/// The outer `Option` represents failure to find the pool,
-/// The inner `Result` represents failure during the conversion.
-pub fn get_pool_by_name(pool_name: &str) -> Option<Result<Pool>> {
+/// The `Result` represents failure to find or convert the pool.
+pub fn get_pool_by_name(pool_name: &str) -> Result<Pool> {
     let mut libzfs = Libzfs::new();
 
     libzfs
         .pool_by_name(&pool_name)
-        .map(|x| convert_to_js_pool(&x))
+        .ok_or_else(|| LibZfsError::PoolNotFound(Some(pool_name.to_string()), None))
+        .and_then(|x| convert_to_js_pool(&x))
+}
+
+/// Given a pool name and guid try to find it and convert it to a `Pool`.
+/// The `Result` represents failure to find or convert the pool.
+pub fn get_pool_by_name_and_guid(pool_name: &str, guid: u64) -> Result<Pool> {
+    let mut libzfs = Libzfs::new();
+
+    libzfs
+        .pool_by_name(&pool_name)
+        .filter(|x| x.guid() == guid)
+        .ok_or_else(|| LibZfsError::PoolNotFound(Some(pool_name.to_string()), Some(guid)))
+        .and_then(|x| convert_to_js_pool(&x))
 }
 
 /// Given a dataset name, try to find it and convert it to a `Dataset`.
-/// The outer `Option` represents failure to find the dataset,
-/// The inner `Result` represents failure during the conversion.
-pub fn get_dataset_by_name(ds_name: &str) -> Option<Result<Dataset>> {
+/// The `Result` represents failure to find or convert the dataset.
+pub fn get_dataset_by_name(ds_name: &str) -> Result<Dataset> {
     let mut libzfs = Libzfs::new();
 
     libzfs
         .dataset_by_name(&ds_name)
-        .map(|x| convert_to_dataset(&x))
+        .ok_or_else(|| LibZfsError::ZfsNotFound(ds_name.to_string()))
+        .and_then(|x| convert_to_dataset(&x))
 }
 
 /// Return all imported pools on this node.
