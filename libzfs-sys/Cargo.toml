@@ -9,7 +9,7 @@ links = "zfs"
 build = "build.rs"
 
 [dependencies]
-nvpair-sys = "0.1"
+nvpair-sys = { git = "https://github.com/jgrund/rust-libzfs", branch = "skip-building-on-mac" }
 
 [build-dependencies]
 bindgen = "0.43.1"

@@ -8,7 +8,7 @@ license = "MIT"
 [dependencies]
 libzfs-sys = { path = "../libzfs-sys", version = "0.5.7"}
 libzfs-types = { path = "../libzfs-types", version = "0.1.0" }
-nvpair-sys = "0.1"
+nvpair-sys = { git = "https://github.com/jgrund/rust-libzfs", branch = "skip-building-on-mac" }
 serde = "1.0"
 serde_derive = "1.0"
 foreign-types = "0.3"

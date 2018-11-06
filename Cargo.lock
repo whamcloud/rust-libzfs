@@ -166,7 +166,7 @@ dependencies = [
  "lazy_static 1.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libzfs-sys 0.5.7",
  "libzfs-types 0.1.0",
- "nvpair-sys 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nvpair-sys 0.1.0 (git+https://github.com/jgrund/rust-libzfs?branch=skip-building-on-mac)",
  "serde 1.0.80 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_derive 1.0.80 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
@@ -176,7 +176,7 @@ name = "libzfs-sys"
 version = "0.5.7"
 dependencies = [
  "bindgen 0.43.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "nvpair-sys 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nvpair-sys 0.1.0 (git+https://github.com/jgrund/rust-libzfs?branch=skip-building-on-mac)",
  "pkg-config 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -217,7 +217,7 @@ dependencies = [
 [[package]]
 name = "nvpair-sys"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/jgrund/rust-libzfs?branch=skip-building-on-mac#82ed2301497cf0d2a6f56297e3a48e5ed7fc3a0f"
 
 [[package]]
 name = "peeking_take_while"
@@ -460,7 +460,7 @@ dependencies = [
 "checksum log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "c84ec4b527950aa83a329754b01dbe3f58361d1c5efacd1f6d68c494d08a17c6"
 "checksum memchr 2.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "0a3eb002f0535929f1199681417029ebea04aadc0c7a4224b46be99c7f5d6a16"
 "checksum nom 4.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "9c349f68f25f596b9f44cf0e7c69752a5c633b0550c3ff849518bfba0233774a"
-"checksum nvpair-sys 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5fc4cc751960db1094a7a732dd0706927aeae9194bf66c30fa227b70fc62b6c8"
+"checksum nvpair-sys 0.1.0 (git+https://github.com/jgrund/rust-libzfs?branch=skip-building-on-mac)" = "<none>"
 "checksum peeking_take_while 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "19b17cddbe7ec3f8bc800887bab5e717348c95ea2ca0b1bf0837fb964dc67099"
 "checksum pkg-config 0.3.14 (registry+https://github.com/rust-lang/crates.io-index)" = "676e8eb2b1b4c9043511a9b7bea0915320d7e502b0a079fb03f9635a5252b18c"
 "checksum proc-macro2 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)" = "77997c53ae6edd6d187fec07ec41b207063b5ee6f33680e9fa86d405cdd313d4"
