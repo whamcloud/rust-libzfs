@@ -170,9 +170,8 @@ impl Drop for Zpool {
 mod tests {
     use super::*;
     use libzfs::Libzfs;
-    use std::ffi::CString;
-    use std::panic;
-    use std::str;
+
+    use std::{ffi::CString, panic, path::PathBuf, str};
 
     fn test_pools<F: Fn(&Vec<Zpool>) -> ()>(f: F) -> ()
     where
@@ -259,6 +258,13 @@ mod tests {
 
     #[test]
     fn test_vdev_tree() {
+        fn create_path_buf(s: &str) -> PathBuf {
+            let mut p = PathBuf::new();
+            p.push(s);
+
+            p
+        }
+
         pool_by_name("test", |p| {
             let (mirror, cache_vdevs, spare_vdevs) = match p.vdev_tree().unwrap() {
                 VDev::Root {
@@ -286,7 +292,7 @@ mod tests {
                 } => {
                     assert!(guid.is_some());
                     assert_eq!(state, "ONLINE");
-                    assert_eq!(path, "/dev/sdb1");
+                    assert_eq!(path, &create_path_buf("/dev/sdb1"));
                     assert!(dev_id.is_some());
                     assert!(phys_path.is_some());
                     assert_eq!(whole_disk, Some(true));
@@ -307,7 +313,7 @@ mod tests {
                 } => {
                     assert!(guid.is_some());
                     assert_eq!(state, "ONLINE");
-                    assert_eq!(path, "/dev/sdc1");
+                    assert_eq!(path, &create_path_buf("/dev/sdc1"));
                     assert!(dev_id.is_some());
                     assert!(phys_path.is_some());
                     assert_eq!(whole_disk, Some(true));
@@ -328,7 +334,7 @@ mod tests {
                 } => {
                     assert!(guid.is_some());
                     assert_eq!(state, "ONLINE");
-                    assert_eq!(path, "/dev/sdd1");
+                    assert_eq!(path, &create_path_buf("/dev/sdd1"));
                     assert!(dev_id.is_some());
                     assert!(phys_path.is_some());
                     assert_eq!(whole_disk, Some(true));
@@ -349,7 +355,7 @@ mod tests {
                 } => {
                     assert!(guid.is_some());
                     assert_eq!(state, "ONLINE");
-                    assert_eq!(path, "/dev/sde1");
+                    assert_eq!(path, &create_path_buf("/dev/sde1"));
                     assert!(dev_id.is_some());
                     assert!(phys_path.is_some());
                     assert_eq!(whole_disk, Some(true));
@@ -370,7 +376,7 @@ mod tests {
                 } => {
                     assert!(guid.is_some());
                     assert_eq!(state, "ONLINE");
-                    assert_eq!(path, "/dev/sdf1");
+                    assert_eq!(path, &create_path_buf("/dev/sdf1"));
                     assert!(dev_id.is_some());
                     assert!(phys_path.is_some());
                     assert_eq!(whole_disk, Some(true));

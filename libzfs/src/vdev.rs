@@ -81,7 +81,8 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
         x if x == sys::VDEV_TYPE_DISK => {
             let path = tree
                 .lookup_string(sys::zpool_config_path())?
-                .into_string()?;
+                .into_string()?
+                .into();
             let dev_id = lookup_tree_str(tree, sys::zpool_config_dev_id())?;
             let phys_path = lookup_tree_str(tree, sys::zpool_config_phys_path())?;
             let whole_disk = tree
@@ -102,7 +103,8 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
         x if x == sys::VDEV_TYPE_FILE => {
             let path = tree
                 .lookup_string(sys::zpool_config_path())?
-                .into_string()?;
+                .into_string()?
+                .into();
 
             Ok(VDev::File {
                 guid: lookup_guid(tree),
