@@ -15,12 +15,11 @@ extern crate lazy_static;
 
 extern crate libzfs_sys as sys;
 
-extern crate libzfs_types;
+pub extern crate libzfs_types;
 
 mod nvpair;
 
-pub mod libzfs_error;
-pub use libzfs_error::*;
+pub use libzfs_types::*;
 
 pub mod vdev;
 pub use vdev::VDev;

@@ -11,8 +11,8 @@
 use std::io;
 
 use libzfs::Libzfs;
-use libzfs_error::{LibZfsError, Result};
 use libzfs_types::{Dataset, Pool};
+use libzfs_types::{LibZfsError, Result};
 use zfs::Zfs;
 use zpool::Zpool;
 
