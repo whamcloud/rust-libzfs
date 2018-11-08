@@ -12,5 +12,5 @@ build = "build.rs"
 nvpair-sys = "0.1"
 
 [build-dependencies]
-bindgen = "0.43.0"
+bindgen = "0.43.1"
 pkg-config = "0.3.14"

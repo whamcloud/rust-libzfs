@@ -12,35 +12,9 @@ use std::io;
 
 use libzfs::Libzfs;
 use libzfs_error::{LibZfsError, Result};
-use vdev::VDev;
+use libzfs_types::{Dataset, Pool};
 use zfs::Zfs;
 use zpool::Zpool;
-use zprop_list::ZProp;
-
-/// A Pool at a point in time
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Pool {
-    pub name: String,
-    pub guid: u64,
-    pub health: String,
-    pub hostname: String,
-    pub hostid: Option<u64>,
-    pub state: String,
-    pub readonly: bool,
-    pub size: String,
-    pub vdev: VDev,
-    pub props: Vec<ZProp>,
-    pub datasets: Vec<Dataset>,
-}
-
-/// A Dataset at a point in time
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Dataset {
-    pub name: String,
-    pub guid: String,
-    pub kind: String,
-    pub props: Vec<ZProp>,
-}
 
 /// Takes a Zfs reference and converts it into a
 /// `Dataset`

@@ -5,7 +5,6 @@
 //! libzfs — Rusty wrapper around libzfs-sys.
 //!
 
-#[macro_use]
 extern crate serde_derive;
 
 #[macro_use]
@@ -15,6 +14,8 @@ extern crate foreign_types;
 extern crate lazy_static;
 
 extern crate libzfs_sys as sys;
+
+extern crate libzfs_types;
 
 mod nvpair;
 

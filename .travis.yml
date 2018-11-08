@@ -27,6 +27,11 @@ jobs:
           script:
               - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
               - docker exec -i libzfs bash -c "cd /rust-libzfs/libzfs && cargo package && cargo publish --token $CARGO_TOKEN"
+        - stage: deploy-libzfs-types
+          name: "libzfs-types"
+          script:
+              - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
+              - docker exec -i libzfs bash -c "cd /rust-libzfs/libzfs-types && cargo package && cargo publish --token $CARGO_TOKEN"
         - stage: deploy-node-libzfs
           name: "@iml/node-libzfs"
           language: node_js
@@ -56,6 +61,8 @@ stages:
       if: branch =~ ^v\d+\.\d+\.\d+libzfs-sys$
     - name: deploy-libzfs
       if: branch =~ ^v\d+\.\d+\.\d+libzfs$
+    - name: deploy-libzfs-types
+      if: branch =~ ^v\d+\.\d+\.\d+libzfs-types$
     - name: deploy-node-libzfs
       if: branch =~ ^v\d+\.\d+\.\d+node-libzfs$
     - name: deploy-copr

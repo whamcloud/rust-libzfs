@@ -1,3 +1,3 @@
 [workspace]
-members = ['libzfs-sys', 'libzfs']
+members = ['libzfs-sys', 'libzfs', 'libzfs-types']
 exclude = ['node-libzfs']

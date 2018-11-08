@@ -5,6 +5,8 @@
 extern crate libzfs_sys as sys;
 use std::ffi::CStr;
 
+pub use libzfs_types::ZProp;
+
 #[derive(Debug, PartialEq)]
 pub struct ZpropList {
     head: *mut sys::zprop_list,
@@ -50,10 +52,4 @@ impl ZpropItem {
     pub fn user_prop(&self) -> &CStr {
         unsafe { CStr::from_ptr((*self.raw).pl_user_prop) }
     }
-}
-
-#[derive(Debug, PartialEq, Eq, Hash, Deserialize, Serialize, Clone)]
-pub struct ZProp {
-    pub name: String,
-    pub value: String,
 }

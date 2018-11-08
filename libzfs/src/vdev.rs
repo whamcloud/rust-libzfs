@@ -5,45 +5,10 @@
 extern crate libzfs_sys as sys;
 
 use libzfs_error::{LibZfsError, Result};
+pub use libzfs_types::VDev;
 use nvpair;
 use std::ffi::CStr;
 use std::io::{Error, ErrorKind};
-
-/// Represents vdevs
-/// The enum starts at Root and is recursive.
-#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Clone)]
-pub enum VDev {
-    Mirror {
-        children: Vec<VDev>,
-        is_log: Option<bool>,
-    },
-    RaidZ {
-        children: Vec<VDev>,
-    },
-    Replacing {
-        children: Vec<VDev>,
-    },
-    Root {
-        children: Vec<VDev>,
-        spares: Vec<VDev>,
-        cache: Vec<VDev>,
-    },
-    Disk {
-        guid: Option<u64>,
-        state: String,
-        path: String,
-        dev_id: Option<String>,
-        phys_path: Option<String>,
-        whole_disk: Option<bool>,
-        is_log: Option<bool>,
-    },
-    File {
-        guid: Option<u64>,
-        state: String,
-        path: String,
-        is_log: Option<bool>,
-    },
-}
 
 pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
     let tmp = tree.lookup_string(sys::zpool_config_type())?;
@@ -116,7 +81,8 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
         x if x == sys::VDEV_TYPE_DISK => {
             let path = tree
                 .lookup_string(sys::zpool_config_path())?
-                .into_string()?;
+                .into_string()?
+                .into();
             let dev_id = lookup_tree_str(tree, sys::zpool_config_dev_id())?;
             let phys_path = lookup_tree_str(tree, sys::zpool_config_phys_path())?;
             let whole_disk = tree
@@ -137,7 +103,8 @@ pub fn enumerate_vdev_tree(tree: &nvpair::NvList) -> Result<VDev> {
         x if x == sys::VDEV_TYPE_FILE => {
             let path = tree
                 .lookup_string(sys::zpool_config_path())?
-                .into_string()?;
+                .into_string()?
+                .into();
 
             Ok(VDev::File {
                 guid: lookup_guid(tree),
