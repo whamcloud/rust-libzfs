@@ -51,7 +51,7 @@ pub struct ZProp {
 }
 
 /// A Pool at a point in time
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, PartialEq, Deserialize, Clone)]
 pub struct Pool {
     pub name: String,
     pub guid: u64,
@@ -67,7 +67,7 @@ pub struct Pool {
 }
 
 /// A Dataset at a point in time
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, PartialEq, Deserialize, Clone)]
 pub struct Dataset {
     pub name: String,
     pub guid: String,
