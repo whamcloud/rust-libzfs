@@ -8,10 +8,6 @@ extern crate pkg_config;
 use std::env;
 
 fn main() {
-    if cfg!(target_os = "macos") {
-        return;
-    }
-
     let out_file = env::current_dir().unwrap().join("src").join("bindings.rs");
 
     env::set_var("LIBCLANG_PATH", "/opt/llvm-5.0.0/lib64/");
