@@ -4,8 +4,8 @@
 
 extern crate libzfs_sys as sys;
 
-use libzfs_error::{LibZfsError, Result};
 pub use libzfs_types::VDev;
+use libzfs_types::{LibZfsError, Result};
 use nvpair;
 use std::ffi::CStr;
 use std::io::{Error, ErrorKind};
