@@ -1,6 +1,6 @@
 [package]
 name = "libzfs-types"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["IML Team <iml@whamcloud.com>"]
 description = "Shared types for libzfs"
 license = "MIT"
