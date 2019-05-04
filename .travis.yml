@@ -7,8 +7,10 @@ jobs:
         - stage: test
           name: "bindgen test"
           script:
-              - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
-              - docker exec -i libzfs bash -c 'cd /rust-libzfs/node-libzfs && cargo build'
+              - docker run -dit --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
+              - docker exec -i libzfs bash -c 'yum install -y cargo yum-plugin-copr'
+              - docker exec -i libzfs bash -c 'yum copr -y enable alonid/llvm-5.0.0'
+              - docker exec -i libzfs bash -c 'yum install -y clang-5.0.0'
               - docker exec -i libzfs bash -c 'cd /rust-libzfs/libzfs-sys && cargo test bindgen_test_layout'
         - stage: test
           name: "mock build"
