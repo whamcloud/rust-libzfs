@@ -208,13 +208,13 @@ dependencies = [
 
 [[package]]
 name = "libzfs"
-version = "0.6.13"
+version = "0.6.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "cstr-argument 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "foreign-types 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "lazy_static 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "libzfs-sys 0.5.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libzfs-sys 0.5.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "libzfs-types 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "nvpair-sys 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.39 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -223,7 +223,7 @@ dependencies = [
 
 [[package]]
 name = "libzfs-sys"
-version = "0.5.9"
+version = "0.5.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "bindgen 0.43.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -295,9 +295,9 @@ dependencies = [
 
 [[package]]
 name = "node-libzfs"
-version = "0.1.18"
+version = "0.1.20"
 dependencies = [
- "libzfs 0.6.13 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libzfs 0.6.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "neon 0.1.23 (registry+https://github.com/rust-lang/crates.io-index)",
  "neon-build 0.1.23 (registry+https://github.com/rust-lang/crates.io-index)",
  "neon-serde 0.0.3 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -594,8 +594,8 @@ dependencies = [
 "checksum lazy_static 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "ca488b89a5657b0a2ecd45b95609b3e848cf1755da332a0da46e2b2b1cb371a7"
 "checksum libc 0.2.40 (registry+https://github.com/rust-lang/crates.io-index)" = "6fd41f331ac7c5b8ac259b8bf82c75c0fb2e469bbf37d2becbba9a6a2221965b"
 "checksum libloading 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)" = "9c3ad660d7cb8c5822cd83d10897b0f1f1526792737a179e73896152f85b88c2"
-"checksum libzfs 0.6.13 (registry+https://github.com/rust-lang/crates.io-index)" = "e64366210fd9c1f4871cf56539a5244b520b75bafe9a576cc6ec2be616f2f22a"
-"checksum libzfs-sys 0.5.9 (registry+https://github.com/rust-lang/crates.io-index)" = "31b340b29a9a74ed8d49972293ed399b97dac1c46168620a3757ec7874c4316c"
+"checksum libzfs 0.6.14 (registry+https://github.com/rust-lang/crates.io-index)" = "51a1c09c187eafa0d8f4d3be266c49bb37ea6c19f27caa334c94109c78e32010"
+"checksum libzfs-sys 0.5.10 (registry+https://github.com/rust-lang/crates.io-index)" = "f17af70a0afcccca2b0e163cdb82eaf1b524ad15796926478a5bf0d745a1e71d"
 "checksum libzfs-types 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "781e3a0e71718873e3fb34ba980a2ff855079c2685d36c78c3df5586a9379bca"
 "checksum log 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)" = "89f010e843f2b1a31dbd316b3b8d443758bc634bed37aabade59c686d644e0a2"
 "checksum memchr 2.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "796fba70e76612589ed2ce7f45282f5af869e0fdd7cc6199fa1aa1f1d591ba9d"

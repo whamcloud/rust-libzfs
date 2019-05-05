@@ -17,7 +17,6 @@ Vagrant.configure('2') do |config|
                           rsync__exclude: [
                             '.git/',
                             'target/',
-                            'include/',
                             'node-libzfs/target',
                             'node-libzfs/node_modules'
                           ]

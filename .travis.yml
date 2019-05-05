@@ -63,16 +63,6 @@ jobs:
               skip_cleanup: true
               on:
                   tags: true
-        - stage: deploy-copr
-          name: "Copr deploy"
-          before_deploy:
-              - include/travis/copr-deploy.sh prepare
-          deploy:
-              skip_cleanup: true
-              provider: script
-              script: ./travis_wait "./include/travis/run_in_centos7_docker.sh ./include/travis/copr-deploy.sh build"
-              on:
-                  all_branches: true
         - stage: deploy-copr-r5.0
           name: "Copr 5.0 deploy"
           script:
