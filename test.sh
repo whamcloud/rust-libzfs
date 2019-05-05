@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e
+
 vagrant destroy -f
 vagrant up
 vagrant ssh -c 'sudo -i -- <<EOF
