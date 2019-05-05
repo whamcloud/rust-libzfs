@@ -9,6 +9,7 @@ Vagrant.configure('2') do |config|
 
   config.vm.provider 'virtualbox' do |v|
     v.linked_clone = true
+    v.customize ['modifyvm', :id, '--audio', 'none']
   end
 
   config.vm.synced_folder '.', '/vagrant',
@@ -57,6 +58,8 @@ Vagrant.configure('2') do |config|
 
   config.vm.provision 'shell', inline: <<-SHELL
     yum -y install yum-plugin-copr epel-release http://download.zfsonlinux.org/epel/zfs-release.el7_6.noarch.rpm
+    yum-config-manager --disable zfs
+    yum-config-manager --enable zfs-kmod
     yum -y copr enable alonid/llvm-5.0.0
     yum -y install clang-5.0.0 zfs libzfs2-devel cargo --nogpgcheck
     genhostid

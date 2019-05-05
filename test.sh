@@ -4,7 +4,7 @@ set -e
 function cleanup {
     vagrant destroy -f
 }
-cleanup finish EXIT
+trap finish EXIT
 
 vagrant destroy -f
 vagrant up
