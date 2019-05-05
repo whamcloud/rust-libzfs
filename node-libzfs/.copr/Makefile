@@ -10,6 +10,7 @@ srpm:
 	yum install -y cargo yum-plugin-copr rpm-build nodejs-packaging
 	yum copr -y enable alonid/llvm-5.0.0
 	yum install -y clang-5.0.0 cargo nodejs
+    npm i -g neon-cli@0.1.23
 	npm run install
 	cp package.json ${TMPDIR}/_topdir/SOURCES/node-libzfs/
 	cp lib/index.js ${TMPDIR}/_topdir/SOURCES/node-libzfs/lib/
