@@ -59,8 +59,8 @@ Vagrant.configure('2') do |config|
     yum -y install yum-plugin-copr epel-release http://download.zfsonlinux.org/epel/zfs-release.el7_6.noarch.rpm
     yum -y copr enable alonid/llvm-5.0.0
     yum -y install clang-5.0.0 zfs libzfs2-devel cargo --nogpgcheck
-    modprobe zfs
     genhostid
+    modprobe zfs
     zpool create test mirror sdb sdc cache sdd spare sde sdf
     zfs create test/ds
     zfs set lustre:mgsnode="10.14.82.0@tcp:10.14.82.1@tcp" test/ds
