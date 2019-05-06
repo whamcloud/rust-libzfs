@@ -40,7 +40,6 @@ jobs:
           name: "libzfs"
           script:
               - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
-              - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
               - docker exec -i libzfs bash -c 'yum install -y cargo yum-plugin-copr'
               - docker exec -i libzfs bash -c 'yum copr -y enable alonid/llvm-5.0.0'
               - docker exec -i libzfs bash -c 'yum install -y clang-5.0.0'

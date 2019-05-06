@@ -61,7 +61,7 @@ Vagrant.configure('2') do |config|
     yum-config-manager --enable zfs-kmod
     yum -y copr enable alonid/llvm-5.0.0
     yum -y install clang-5.0.0 zfs libzfs2-devel cargo --nogpgcheck
-    genhostid
+    zgenhostid
     modprobe zfs
     zpool create test mirror sdb sdc cache sdd spare sde sdf
     zfs create test/ds
