@@ -7,25 +7,42 @@ jobs:
         - stage: test
           name: "bindgen test"
           script:
-              - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
-              - docker exec -i libzfs bash -c 'cd /rust-libzfs/node-libzfs && cargo build'
+              - docker run -dit --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
+              - docker exec -i libzfs bash -c 'yum install -y cargo yum-plugin-copr'
+              - docker exec -i libzfs bash -c 'yum copr -y enable alonid/llvm-5.0.0'
+              - docker exec -i libzfs bash -c 'yum install -y clang-5.0.0'
               - docker exec -i libzfs bash -c 'cd /rust-libzfs/libzfs-sys && cargo test bindgen_test_layout'
         - stage: test
-          name: "mock build"
-          language: node_js
-          node_js: "10"
+          name: "copr build test"
           script:
-              - cd node-libzfs
-              - npm run mock
+            - cd node-libzfs
+            - export SPEC=iml-node-libzfs.spec
+            - docker run -it -e SPEC="$SPEC" -e LOCAL_ONLY="True" -v $(pwd):/build:rw imlteam/copr-zfs
+            - ((`find _topdir/RPMS -name *.rpm | wc -l` > 0))
+        - stage: cd
+          name: "Continuous Deployment"
+          script:
+            - cd node-libzfs
+            - export OWNER=managerforlustre
+            - export PROJECT=manager-for-lustre-devel
+            - export PACKAGE=iml-node-libzfs
+            - export SPEC=iml-node-libzfs.spec
+            - docker run -it -e OWNER="$OWNER" -e PROJECT="$PROJECT" -e PACKAGE="$PACKAGE" -e SPEC="$SPEC" -e KEY="$encrypted_253525cedcf6_key" -e IV="$encrypted_253525cedcf6_iv" -v $(pwd):/build:rw imlteam/copr
         - stage: deploy-libzfs-sys
           name: "libzfs-sys"
           script:
               - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
+              - docker exec -i libzfs bash -c 'yum install -y cargo yum-plugin-copr'
+              - docker exec -i libzfs bash -c 'yum copr -y enable alonid/llvm-5.0.0'
+              - docker exec -i libzfs bash -c 'yum install -y clang-5.0.0'
               - docker exec -i libzfs bash -c "cd /rust-libzfs/libzfs-sys && cargo package && cargo publish --token $CARGO_TOKEN"
         - stage: deploy-libzfs
           name: "libzfs"
           script:
               - docker run -d -it --name libzfs -v $(pwd):/rust-libzfs:rw imlteam/zfs
+              - docker exec -i libzfs bash -c 'yum install -y cargo yum-plugin-copr'
+              - docker exec -i libzfs bash -c 'yum copr -y enable alonid/llvm-5.0.0'
+              - docker exec -i libzfs bash -c 'yum install -y clang-5.0.0'
               - docker exec -i libzfs bash -c "cd /rust-libzfs/libzfs && cargo package && cargo publish --token $CARGO_TOKEN"
         - stage: deploy-libzfs-types
           name: "libzfs-types"
@@ -45,18 +62,19 @@ jobs:
               skip_cleanup: true
               on:
                   tags: true
-        - stage: deploy-copr
-          name: "Copr deploy"
-          before_deploy:
-              - include/travis/copr-deploy.sh prepare
-          deploy:
-              skip_cleanup: true
-              provider: script
-              script: ./travis_wait "./include/travis/run_in_centos7_docker.sh ./include/travis/copr-deploy.sh build"
-              on:
-                  all_branches: true
+        - stage: deploy-copr-r5.0
+          name: "Copr 5.0 deploy"
+          script:
+            - cd node-libzfs
+            - export OWNER=managerforlustre
+            - export PROJECT=manager-for-lustre-5.0
+            - export PACKAGE=iml-node-libzfs
+            - export SPEC=iml-node-libzfs.spec
+            - docker run -it -e PROD="true" -e OWNER="$OWNER" -e PROJECT="$PROJECT" -e PACKAGE="$PACKAGE" -e SPEC="$SPEC" -e KEY="$encrypted_253525cedcf6_key" -e IV="$encrypted_253525cedcf6_iv" -v $(pwd):/build:rw imlteam/copr
 stages:
     - test
+    - name: cd
+      if: branch = master AND type = push AND fork = false
     - name: deploy-libzfs-sys
       if: branch =~ ^v\d+\.\d+\.\d+libzfs-sys$
     - name: deploy-libzfs
@@ -65,5 +83,5 @@ stages:
       if: branch =~ ^v\d+\.\d+\.\d+libzfs-types$
     - name: deploy-node-libzfs
       if: branch =~ ^v\d+\.\d+\.\d+node-libzfs$
-    - name: deploy-copr
-      if: branch =~ ^v\d+\.\d+\.\d+-.+node-libzfs$
+    - name: deploy-copr-r5.0
+      if: branch =~ ^v\d+\.\d+\.\d+-.+-r5\.0$

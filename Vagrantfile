@@ -5,9 +5,11 @@ require 'open3'
 
 Vagrant.configure('2') do |config|
   config.vm.box = 'centos/7'
+  config.vm.box_version = '1902.01'
 
   config.vm.provider 'virtualbox' do |v|
     v.linked_clone = true
+    v.customize ['modifyvm', :id, '--audio', 'none']
   end
 
   config.vm.synced_folder '.', '/vagrant',
@@ -15,7 +17,6 @@ Vagrant.configure('2') do |config|
                           rsync__exclude: [
                             '.git/',
                             'target/',
-                            'include/',
                             'node-libzfs/target',
                             'node-libzfs/node_modules'
                           ]
@@ -42,7 +43,7 @@ Vagrant.configure('2') do |config|
                       '--variant', 'fixed']
       end
 
-      vb.customize ['storageattach', :id, 
+      vb.customize ['storageattach', :id,
                     '--storagectl', 'SATA Controller',
                     '--port', i,
                     '--type', 'hdd',
@@ -55,20 +56,17 @@ Vagrant.configure('2') do |config|
   end
 
   config.vm.provision 'shell', inline: <<-SHELL
-    yum -y install yum-plugin-copr epel-release http://download.zfsonlinux.org/epel/zfs-release.el7_5.noarch.rpm
+    yum -y install yum-plugin-copr epel-release http://download.zfsonlinux.org/epel/zfs-release.el7_6.noarch.rpm
+    yum-config-manager --disable zfs
+    yum-config-manager --enable zfs-kmod
     yum -y copr enable alonid/llvm-5.0.0
-    yum -y install clang-5.0.0 zfs libzfs2-devel --nogpgcheck
+    yum -y install clang-5.0.0 zfs libzfs2-devel cargo --nogpgcheck
+    zgenhostid
     modprobe zfs
-    genhostid
     zpool create test mirror sdb sdc cache sdd spare sde sdf
     zfs create test/ds
     zfs set lustre:mgsnode="10.14.82.0@tcp:10.14.82.1@tcp" test/ds
     zpool export test
-    curl https://sh.rustup.rs -sSf > /home/vagrant/rustup.sh
-    chmod 755 rustup.sh
-    ./rustup.sh -y
-    source $HOME/.cargo/env
-    rustup component add rustfmt-preview
   SHELL
 end
 

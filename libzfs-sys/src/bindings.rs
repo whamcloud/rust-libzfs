@@ -614,8 +614,10 @@ extern "C" {
     pub fn zpool_pool_state_to_name(arg1: pool_state_t) -> *const ::std::os::raw::c_char;
 }
 pub type zpool_iter_f = ::std::option::Option<
-    unsafe extern "C" fn(arg1: *mut zpool_handle_t, arg2: *mut ::std::os::raw::c_void)
-        -> ::std::os::raw::c_int,
+    unsafe extern "C" fn(
+        arg1: *mut zpool_handle_t,
+        arg2: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int,
 >;
 extern "C" {
     pub fn zpool_iter(
@@ -804,8 +806,10 @@ extern "C" {
     pub fn zprop_free_list(arg1: *mut zprop_list_t);
 }
 pub type zfs_iter_f = ::std::option::Option<
-    unsafe extern "C" fn(arg1: *mut zfs_handle_t, arg2: *mut ::std::os::raw::c_void)
-        -> ::std::os::raw::c_int,
+    unsafe extern "C" fn(
+        arg1: *mut zfs_handle_t,
+        arg2: *mut ::std::os::raw::c_void,
+    ) -> ::std::os::raw::c_int,
 >;
 extern "C" {
     pub fn zfs_iter_filesystems(

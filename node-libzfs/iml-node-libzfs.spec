@@ -1,41 +1,35 @@
 %define base_name node-libzfs
+
 Name:       iml-%{base_name}
-Version:    0.1.19
+Version:    0.1.20
+# Release Start
 Release:    1%{?dist}
+# Release End
+
 Summary:    Implements a binding layer from node to rust-libzfs
 License:    MIT
 Group:      System Environment/Libraries
 URL:        https://github.com/whamcloud/rust-libzfs/tree/master/%{base_name}
-# Forcing local source because rpkg in copr does not seem to have a way
-# to build source in the same way a package manager would.
-Source0:    %{name}-%{version}.tgz
+
+Source0:    %{name}.tar.gz
 
 ExclusiveArch: %{nodejs_arches}
 
 BuildRequires: nodejs-packaging
-BuildRequires: nodejs
-BuildRequires: npm
-BuildRequires: cargo
-BuildRequires: clang-5.0.0
-BuildRequires: libzfs2-devel
-BuildRequires: zfs
 
 Requires: nodejs
 
 %description
-Implements a binding layer from node to rust-libzfs.
+%{summary}
 
 %prep
-%setup
-npm i neon-cli@0.1.23
+%setup -c
 %nodejs_fixdep -r neon-cli
 
 %build
-npm run install
 
 %install
-mkdir -p %{buildroot}%{nodejs_sitearch}/@iml/node-libzfs/lib/
-mkdir -p %{buildroot}%{nodejs_sitearch}/@iml/node-libzfs/native/
+mkdir -p %{buildroot}%{nodejs_sitearch}/@iml/node-libzfs/{lib,native}
 cp -p package.json %{buildroot}%{nodejs_sitearch}/@iml/node-libzfs/
 cp -p lib/index.js %{buildroot}%{nodejs_sitearch}/@iml/node-libzfs/lib/
 cp -p native/index.node %{buildroot}%{nodejs_sitearch}/@iml/node-libzfs/native/
@@ -52,6 +46,9 @@ rm -rf %{buildroot}
 %{nodejs_sitearch}/@iml/node-libzfs/package.json
 
 %changelog
+* Sat May 04 2019 Joe Grund <jgrund@whamcloud.com> - 0.1.20-1
+- Bump to ZFS 0.7.13
+
 * Thu Nov 01 2018 Joe Grund <jgrund@whamcloud.com> - 0.1.19-1
 - Bump to ZFS 0.7.11
 

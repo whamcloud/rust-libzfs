@@ -1,6 +1,6 @@
 {
     "name": "@iml/node-libzfs",
-    "version": "0.1.19",
+    "version": "0.1.20",
     "description": "Neon bindings to libzfs",
     "main": "lib/index.js",
     "publishConfig": {
@@ -10,15 +10,16 @@
         "type": "git",
         "url": "https://github.com/whamcloud/node-libzfs"
     },
+    "files": [
+        "lib/index.js",
+        "native/index.node"
+    ],
     "author": "IML Team",
     "license": "MIT",
     "dependencies": {
         "neon-cli": "0.1.23"
     },
     "scripts": {
-        "premock": "docker run -dit --cap-add=SYS_ADMIN --privileged --name mock imlteam/mock /usr/sbin/init",
-        "mock": "cd ../ && docker cp -a ./ mock:/builddir",
-        "postmock": "docker exec -ti mock bash -xec 'cd /builddir/node-libzfs && rpkg make-source --outdir ./ && ./mock-build.sh'",
         "install": "neon build"
     }
 }

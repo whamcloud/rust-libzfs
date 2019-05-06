@@ -1,12 +1,12 @@
 [package]
 name = "libzfs"
-version = "0.6.13"
+version = "0.6.14"
 authors = ["IML Team <iml@whamcloud.com>"]
 description = "Rust wrapper around libzfs-sys"
 license = "MIT"
 
 [dependencies]
-libzfs-sys = { path = "../libzfs-sys", version = "0.5.9"}
+libzfs-sys = { path = "../libzfs-sys", version = "0.5.10"}
 libzfs-types = { path = "../libzfs-types", version = "0.1.1" }
 nvpair-sys = "0.1"
 serde = "1.0"
