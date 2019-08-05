@@ -1,6 +1,6 @@
 [package]
 name = "libzfs-sys"
-version = "0.5.10"
+version = "0.5.11"
 description = "Rust bindings to libzfs"
 license = "MIT"
 repository = "https://github.com/whamcloud/rust-libzfs"
@@ -12,5 +12,5 @@ build = "build.rs"
 nvpair-sys = "0.1"
 
 [build-dependencies]
-bindgen = "0.43.1"
-pkg-config = "0.3.14"
+bindgen = "0.51.0"
+pkg-config = "0.3.15"

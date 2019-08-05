@@ -70,7 +70,8 @@ impl Zfs {
                     .map(|v| ZProp {
                         name: x.user_prop().to_owned().into_string().unwrap(),
                         value: v.into_string().unwrap(),
-                    }).ok(),
+                    })
+                    .ok(),
                 y => {
                     let raw = CString::new("0".repeat(buff_size)).unwrap().into_raw();
 
@@ -100,7 +101,8 @@ impl Zfs {
                         None
                     }
                 }
-            }).collect::<Vec<_>>();
+            })
+            .collect::<Vec<_>>();
 
         Ok(xs)
     }
@@ -171,7 +173,8 @@ mod tests {
                         "guid".to_owned(),
                         "createtxg".to_owned()
                     ]
-                        .contains(&x.name)).collect::<Vec<ZProp>>(),
+                    .contains(&x.name))
+                    .collect::<Vec<ZProp>>(),
                 vec![
                     ZProp {
                         name: "name".to_owned(),
