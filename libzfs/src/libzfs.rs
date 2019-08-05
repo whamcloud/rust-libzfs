@@ -67,7 +67,9 @@ impl Libzfs {
         let _l = LOCK.lock().unwrap();
         unsafe {
             sys::thread_init();
-            let x = sys::zpool_search_import(self.raw, sys::import_args());
+            let mut args = sys::import_args();
+
+            let x = sys::zpool_search_import(self.raw, &mut args as *mut sys::importargs);
             sys::thread_fini();
 
             nvpair::NvList::from_ptr(x)
