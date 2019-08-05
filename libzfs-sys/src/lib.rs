@@ -26,6 +26,7 @@
 
 extern crate nvpair_sys;
 use nvpair_sys::*;
+
 include!("bindings.rs");
 
 fn utf8_to_string(bytes: &[u8]) -> String {
@@ -94,6 +95,18 @@ pub fn zpool_config_vdev_stats() -> String {
 
 pub fn zfs_type_dataset() -> zfs_type_t {
     zfs_type_t::ZFS_TYPE_FILESYSTEM | zfs_type_t::ZFS_TYPE_VOLUME | zfs_type_t::ZFS_TYPE_SNAPSHOT
+}
+
+pub fn import_args() -> importargs {
+    importargs {
+        path: std::ptr::null_mut(),
+        paths: 0,
+        poolname: std::ptr::null_mut(),
+        guid: 0,
+        cachefile: std::ptr::null_mut(),
+        _bitfield_1: importargs::new_bitfield_1(0, 1, 1, 0),
+        __bindgen_padding_0: [0, 0, 0, 0, 0, 0, 0],
+    }
 }
 
 /// Converts a `Vec<u64>` to `vdev_stat_t`
@@ -203,7 +216,10 @@ mod tests {
 
         let (nvl, nvp) = unsafe {
             thread_init();
-            let nvl = zpool_find_import(h, 0, ptr::null_mut());
+
+            let mut args = import_args();
+
+            let nvl = zpool_search_import(h, &mut args as *mut importargs);
             thread_fini();
 
             let nvp = nvlist_next_nvpair(nvl, ptr::null_mut());

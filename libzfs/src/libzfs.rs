@@ -67,7 +67,9 @@ impl Libzfs {
         let _l = LOCK.lock().unwrap();
         unsafe {
             sys::thread_init();
-            let x = sys::zpool_find_import(self.raw, 0, ptr::null_mut());
+            let mut args = sys::import_args();
+
+            let x = sys::zpool_search_import(self.raw, &mut args as *mut sys::importargs);
             sys::thread_fini();
 
             nvpair::NvList::from_ptr(x)
@@ -91,7 +93,8 @@ impl Libzfs {
                     0 => Ok(()),
                     x => Err(LibZfsError::Io(Error::from_raw_os_error(x))),
                 }
-            }).collect()
+            })
+            .collect()
     }
     pub fn export_all(&mut self, pools: &[Zpool]) -> Result<Vec<()>> {
         pools

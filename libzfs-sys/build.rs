@@ -78,7 +78,7 @@ fn main() {
         .whitelist_function("thread_fini")
         .whitelist_function("zpool_import")
         .whitelist_function("zpool_export")
-        .whitelist_function("zpool_find_import")
+        .whitelist_function("zpool_search_import")
         .whitelist_function("zpool_iter")
         .whitelist_function("zpool_open_canfail")
         .whitelist_function("zpool_close")
