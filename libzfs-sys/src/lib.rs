@@ -104,7 +104,7 @@ pub fn import_args() -> importargs {
         poolname: std::ptr::null_mut(),
         guid: 0,
         cachefile: std::ptr::null_mut(),
-        _bitfield_1: importargs::new_bitfield_1(1, 1, 1, 0),
+        _bitfield_1: importargs::new_bitfield_1(0, 1, 1, 0),
         __bindgen_padding_0: [0, 0, 0, 0, 0, 0, 0],
     }
 }
