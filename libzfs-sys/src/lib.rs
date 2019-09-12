@@ -215,12 +215,9 @@ mod tests {
         }
 
         let (nvl, nvp) = unsafe {
-            thread_init();
-
             let mut args = import_args();
 
             let nvl = zpool_search_import(h, &mut args as *mut importargs);
-            thread_fini();
 
             let nvp = nvlist_next_nvpair(nvl, ptr::null_mut());
 

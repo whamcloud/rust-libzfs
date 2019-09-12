@@ -13,4 +13,4 @@ nvpair-sys = "0.1"
 
 [build-dependencies]
 bindgen = "0.51.0"
-pkg-config = "0.3.15"
+pkg-config = "0.3.16"

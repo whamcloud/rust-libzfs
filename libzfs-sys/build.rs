@@ -17,7 +17,7 @@ fn main() {
     env::set_var("LIBCLANG_PATH", "/opt/llvm-5.0.0/lib64/");
 
     pkg_config::Config::new()
-        .atleast_version("0.7.13")
+        .atleast_version("0.8.0")
         .probe("libzfs")
         .unwrap();
     println!("cargo:rustc-link-lib=zpool");
@@ -74,8 +74,6 @@ fn main() {
         .blacklist_type("nvlist")
         .whitelist_function("libzfs_init")
         .whitelist_function("libzfs_fini")
-        .whitelist_function("thread_init")
-        .whitelist_function("thread_fini")
         .whitelist_function("zpool_import")
         .whitelist_function("zpool_export")
         .whitelist_function("zpool_search_import")
@@ -106,8 +104,9 @@ fn main() {
         .whitelist_function("zfs_validate_name")
         .whitelist_function("zprop_free_list")
         .clang_arg("-I/usr/lib/gcc/x86_64-redhat-linux/4.8.2/include/")
-        .clang_arg("-I/usr/src/zfs-0.7.13/lib/libspl/include/")
-        .clang_arg("-I/usr/src/zfs-0.7.13/include/")
+        .clang_arg("-I/usr/include/libspl/")
+        .clang_arg("-I/usr/src/debug/zfs-0.8.0/include/")
+        .clang_arg("-I/usr/include/libzfs/")
         .generate()
         .expect("Unable to generate bindings");
 
