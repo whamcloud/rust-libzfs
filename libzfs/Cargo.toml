@@ -2,6 +2,7 @@
 name = "libzfs"
 version = "0.6.15"
 authors = ["IML Team <iml@whamcloud.com>"]
+repository = "https://github.com/whamcloud/rust-libzfs"
 description = "Rust wrapper around libzfs-sys"
 license = "MIT"
 
