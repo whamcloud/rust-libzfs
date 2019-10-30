@@ -2,6 +2,7 @@
 name = "libzfs-types"
 version = "0.1.1"
 authors = ["IML Team <iml@whamcloud.com>"]
+repository = "https://github.com/whamcloud/rust-libzfs"
 description = "Shared types for libzfs"
 license = "MIT"
 
