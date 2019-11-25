@@ -4,4 +4,5 @@
 
 #define _LARGEFILE64_SOURCE
 
+#include <stdint.h>
 #include <libzfs_impl.h>

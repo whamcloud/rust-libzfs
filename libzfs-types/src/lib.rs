@@ -42,7 +42,7 @@ impl fmt::Display for LibZfsError {
 }
 
 impl error::Error for LibZfsError {
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match *self {
             LibZfsError::Io(ref err) => Some(err),
             LibZfsError::IntoString(ref err) => Some(err),
