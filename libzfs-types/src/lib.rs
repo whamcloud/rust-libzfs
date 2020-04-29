@@ -4,7 +4,6 @@
 
 //! libzfs-types — Shared types for libzfs
 //!
-
 extern crate serde_derive;
 
 use serde_derive::{Deserialize, Serialize};
@@ -66,7 +65,7 @@ impl From<IntoStringError> for LibZfsError {
 
 pub type Result<T> = result::Result<T, LibZfsError>;
 
-#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Clone, PartialOrd, Ord)]
 pub enum VDev {
     Mirror {
         children: Vec<VDev>,
@@ -100,7 +99,7 @@ pub enum VDev {
     },
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Deserialize, Serialize, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Deserialize, Serialize, Clone, PartialOrd, Ord)]
 pub struct ZProp {
     pub name: String,
     pub value: String,
