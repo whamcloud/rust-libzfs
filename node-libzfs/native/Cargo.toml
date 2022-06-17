@@ -13,7 +13,7 @@ crate-type = ["dylib"]
 neon-build = "0.1.23"
 
 [dependencies]
-neon = "0.1.23"
+neon = "0.10.1"
 neon-serde = "0.0.3"
 serde = "1.0"
 serde_derive = "1.0"
