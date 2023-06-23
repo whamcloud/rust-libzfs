@@ -17,7 +17,7 @@
     "author": "IML Team",
     "license": "MIT",
     "dependencies": {
-        "neon-cli": "0.1.23"
+        "neon-cli": "0.10.1"
     },
     "scripts": {
         "install": "neon build"
